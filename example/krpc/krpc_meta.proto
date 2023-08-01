@@ -1,0 +1,30 @@
+syntax="proto3";
+
+package ProtobufRpc;
+option  go_package = ".;pb";
+
+// the message reference https://github.com/bruceran/krpc/blob/master/misc/protos/krpcmeta.proto
+/*
+  compile with command: protoc --go-plugin_out=./pb --go-plugin_opt=paths=source_relative krpc_meta.proto
+  the generated code need some modify
+*/
+message KrpcMeta {
+  enum Direction {
+    INVALID_DIRECTION = 0 ;
+    REQUEST = 1;
+    RESPONSE = 2;
+  }
+
+  message Trace {
+    string traceId = 2;
+    string parentSpanId = 3;
+    string spanId = 4;
+  }
+
+  Direction direction = 1;
+  int32 serviceId = 2;
+  int32 msgId = 3;
+  int32 sequence = 4;
+  int32 retCode = 6;
+  Trace trace = 7;
+};
