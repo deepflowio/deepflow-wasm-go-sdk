@@ -74,6 +74,8 @@ type ParseCtx struct {
 	Direction Direction
 	// only EbpfType is not EbpfTypeNone will not empty
 	ProcName string
+	FlowID   uint64
+	BufSize  uint16
 	payload  []byte
 }
 
@@ -118,4 +120,8 @@ type L7ProtocolInfo struct {
 	Resp      *Response
 	Trace     *Trace
 	Kv        []KeyVal
+	// cache the log in session merge and merge multi times until request end and response end
+	ProtocolMerge bool
+	// request/response end
+	IsEnd bool
 }
