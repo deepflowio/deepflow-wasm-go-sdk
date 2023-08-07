@@ -69,6 +69,10 @@ direction:   1 byte, 0/1 indicate c2s/s2c
 proc name len:  1 byte
 
 proc name: 		$(proc name len) len
+
+flow_id:     8 bytes
+
+buf_size:    2 bytes
 */
 func deserializeParseCtx(b []byte) *ParseCtx {
 	ctx := &ParseCtx{}
@@ -167,6 +171,25 @@ func deserializeParseCtx(b []byte) *ParseCtx {
 		ctx.ProcName = string(b[off : off+procNameLen])
 		off += procNameLen
 	}
+
+	// flow id
+	if off+8 > len(b) {
+		Error("deserialize parse ctx flow id fail")
+		return nil
+	}
+
+	ctx.FlowID = binary.BigEndian.Uint64(b[off : off+8])
+	off += 8
+
+	// buffer size
+	if off+2 > len(b) {
+		Error("deserialize parse ctx flow id fail")
+		return nil
+	}
+
+	ctx.BufSize = binary.BigEndian.Uint16(b[off : off+2])
+	off += 2
+
 	return ctx
 }
 
@@ -303,6 +326,8 @@ func serializeKV(attr []KeyVal, buf []byte, offset *int) bool {
 
 		resp
 
+	need_protocol_merge: 1 byte, the msb indicate is need protocol merge, the lsb indicate is end, such as 1 000000 1
+
 	has trace: 1 byte
 
 	if has trace:
@@ -410,6 +435,21 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 			return nil
 		}
 		off += size
+
+		// serialize need_merge_protocol
+		if !checkLen(1) {
+			Error("serialize L7ProtocolInfo `ProtocolMerge` fail")
+			return nil
+		}
+		var needProtocolMerge byte = 0
+		if info.ProtocolMerge {
+			needProtocolMerge = 1 << 7
+			if info.IsEnd {
+				needProtocolMerge |= 1
+			}
+		}
+		buf[off] = needProtocolMerge
+		off += 1
 
 		// serialize trace info
 		if !checkLen(1) {
