@@ -32,10 +32,11 @@ const (
 )
 
 const (
-	EbpfTypeTracePoint    EbpfType = 0
-	EbpfTypeTlsUprobe     EbpfType = 1
-	EbpfTypeGoHttp2Uprobe EbpfType = 2
-	EbpfTypeNone          EbpfType = 255
+	EbpfTypeTracePoint        EbpfType = 0
+	EbpfTypeTlsUprobe         EbpfType = 1
+	EbpfTypeGoHttp2Uprobe     EbpfType = 2
+	EbpfTypeGoHttp2UprobeDATA EbpfType = 5
+	EbpfTypeNone              EbpfType = 255
 )
 
 const (
