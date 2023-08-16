@@ -30,7 +30,7 @@ import (
 const WASM_HTTP_STATUS_REWRITE_PROTOCOL uint8 = 1
 
 func main() {
-	sdk.Info("on httpstatus rewrite wasm plugin init")
+	sdk.Info("on http status rewrite wasm plugin init")
 	sdk.SetParser(parser{})
 }
 
@@ -197,8 +197,8 @@ func onResp(r *http.Response) sdk.ParseAction {
 	default:
 		if code >= 200 && code < 300 {
 			code = 500
-			result = string(body)
 		}
+		result = string(body)
 	}
 
 	return sdk.ParseActionAbortWithL7Info([]*sdk.L7ProtocolInfo{
