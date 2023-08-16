@@ -188,16 +188,17 @@ func onResp(r *http.Response) sdk.ParseAction {
 	}
 
 	var (
-		code   int32
+		code   = int32(r.StatusCode)
 		result string
 	)
 	switch status {
 	case "SUCCESS":
-		code = int32(r.StatusCode)
 
 	default:
-		code = 500
-		result = string(body)
+		if code >= 200 && code < 300 {
+			code = 500
+			result = string(body)
+		}
 	}
 
 	return sdk.ParseActionAbortWithL7Info([]*sdk.L7ProtocolInfo{
