@@ -139,6 +139,7 @@ func deserializeParseCtx(b []byte) *ParseCtx {
 	switch ebpfType {
 	case EbpfTypeTracePoint,
 		EbpfTypeTlsUprobe,
+		EbpfTypeGoHttp2UprobeDATA,
 		EbpfTypeGoHttp2Uprobe,
 		EbpfTypeNone:
 		ctx.EbpfType = ebpfType
