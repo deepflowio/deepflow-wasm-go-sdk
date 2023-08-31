@@ -44,7 +44,7 @@ type KrpcInfo struct {
 	// 0 success, negative indicate error, no positive number.
 	RetCode int32
 
-	//trace info
+	// trace info
 	TraceId      string
 	SpanId       string
 	ParentSpanId string
@@ -122,11 +122,11 @@ func (k *KrpcInfo) isHeartBeat() bool {
 type parser struct {
 }
 
-func (p parser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.HttpAction {
+func (p parser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.Action {
 	return sdk.ActionNext()
 }
 
-func (p parser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.HttpAction {
+func (p parser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 	return sdk.ActionNext()
 }
 
@@ -142,7 +142,7 @@ func (p parser) OnCheckPayload(ctx *sdk.ParseCtx) (protoNum uint8, protoStr stri
 	return KRPC_PROTOCOL, "Krpc"
 }
 
-func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.ParseAction {
+func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {
 	if ctx.L7 != KRPC_PROTOCOL {
 		return sdk.ActionNext()
 	}
@@ -172,7 +172,7 @@ func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.ParseAction {
 		}
 	case sdk.DirectionResponse:
 		resp = &sdk.Response{
-			Status: info.Status,
+			Status: &info.Status,
 			Code:   &info.RetCode,
 		}
 	default:

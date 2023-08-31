@@ -23,11 +23,11 @@ const (
 type parser struct {
 }
 
-func (p parser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.HttpAction {
+func (p parser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.Action {
 	return sdk.ActionNext()
 }
 
-func (p parser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.HttpAction {
+func (p parser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 	return sdk.ActionNext()
 }
 
@@ -46,7 +46,7 @@ func (p parser) OnCheckPayload(ctx *sdk.ParseCtx) (protoNum uint8, protoStr stri
 	return GO_HTTP2_EBPF_PROTOCOL, "ebpf_go_http2"
 }
 
-func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.ParseAction {
+func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {
 	if ctx.L7 != GO_HTTP2_EBPF_PROTOCOL {
 		return sdk.ActionNext()
 	}
@@ -211,7 +211,8 @@ func onHeader(info *sdk.L7ProtocolInfo, key string, val string) error {
 			}
 			return sdk.RespStatusServerErr
 		}
-		info.Resp.Status = getStatus(statusCode)
+		status := getStatus(statusCode)
+		info.Resp.Status = &status
 	}
 	return nil
 }

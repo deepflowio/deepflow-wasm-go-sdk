@@ -26,8 +26,7 @@ const PAGE_SIZE = 65536
 const PARSE_PARAM_BUF_SIZE = 1024
 const PAYLOAD_BUF_SIZE = 8192
 const HTTP_REQ_BUF_SIZE = PAGE_SIZE
-const HTTP_RESP_BUF_SIZE = 2
-const HTTP_RESULT_BUF_SIZE = PAGE_SIZE
+const HTTP_RESP_BUF_SIZE = 3
 const KV_SERDE_BUF_SIZE = PAGE_SIZE
 const L7_INFO_BUF_SIZE = PAGE_SIZE
 
@@ -251,12 +250,22 @@ func deserializeHttpReqCtx(paramBuf, httpReqBuf []byte) *HttpReqCtx {
 }
 
 /*
-code:      2bytes
+code:     2 bytes
+status:   1 byte
 */
 func deserializeHttpRespCtx(paramBuf, httpRespBuf []byte) *HttpRespCtx {
 	respBufLen := len(httpRespBuf)
-	if respBufLen < 2 {
+	if respBufLen < 3 {
 		return nil
+	}
+
+	status := RespStatus(httpRespBuf[2])
+	switch status {
+	case RespStatusOk, RespStatusNotExist, RespStatusServerErr, RespStatusClientErr:
+	default:
+		Error("httpRespBuf recv unknown status: %d", status)
+		return nil
+
 	}
 
 	baseCtx := deserializeParseCtx(paramBuf)
@@ -265,6 +274,7 @@ func deserializeHttpRespCtx(paramBuf, httpRespBuf []byte) *HttpRespCtx {
 	}
 	ctx := &HttpRespCtx{
 		BaseCtx: *baseCtx,
+		Status:  status,
 		Code:    binary.BigEndian.Uint16(httpRespBuf[:2]),
 	}
 	return ctx
@@ -531,7 +541,11 @@ func serializeL7InfoResp(resp *Response, buf []byte) int {
 	if off+1 > len(buf) {
 		return 0
 	}
-	buf[off] = byte(resp.Status)
+	if resp.Status == nil {
+		status := RespStatusNotExist
+		resp.Status = &status
+	}
+	buf[off] = byte(*resp.Status)
 	off += 1
 	if resp.Code != nil {
 		buf[off] = 1
@@ -551,27 +565,4 @@ func serializeL7InfoResp(resp *Response, buf []byte) int {
 		return off
 	}
 	return 0
-}
-
-func serializeHttpResult(result []byte, trace *Trace, attr []KeyVal) (int, bool) {
-	off := 0
-	if trace != nil {
-		result[0] = 1
-		off += 1
-		if !(writeStr(trace.TraceID, result[:], &off) &&
-			writeStr(trace.SpanID, result[:], &off) &&
-			writeStr(trace.ParentSpanID, result[:], &off)) {
-			Error("serialize http trace fail")
-			return 0, false
-		}
-	} else {
-		result[0] = 0
-		off += 1
-	}
-
-	if len(attr) != 0 && !serializeKV(attr, result[:], &off) {
-		Error("serialize http attr fail")
-		return 0, false
-	}
-	return off, true
 }

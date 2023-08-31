@@ -41,6 +41,7 @@ const (
 
 const (
 	RespStatusOk        RespStatus = 0
+	RespStatusNotExist  RespStatus = 2
 	RespStatusServerErr RespStatus = 3
 	RespStatusClientErr RespStatus = 4
 )
@@ -61,6 +62,7 @@ type HttpReqCtx struct {
 type HttpRespCtx struct {
 	BaseCtx ParseCtx
 	Code    uint16
+	Status  RespStatus
 }
 
 type ParseCtx struct {
@@ -101,7 +103,7 @@ type Request struct {
 }
 
 type Response struct {
-	Status    RespStatus
+	Status    *RespStatus
 	Code      *int32
 	Result    string
 	Exception string

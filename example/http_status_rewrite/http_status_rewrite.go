@@ -27,8 +27,6 @@ import (
 	"strings"
 )
 
-const WASM_HTTP_STATUS_REWRITE_PROTOCOL uint8 = 1
-
 func main() {
 	sdk.Info("on http status rewrite wasm plugin init")
 	sdk.SetParser(parser{})
@@ -37,75 +35,37 @@ func main() {
 type parser struct {
 }
 
-func (p parser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.HttpAction {
+func (p parser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.Action {
 	return sdk.ActionNext()
 }
 
-func (p parser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.HttpAction {
-	return sdk.ActionNext()
+func (p parser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
+	payload, err := ctx.BaseCtx.GetPayload()
+	if err != nil {
+		return sdk.ActionAbortWithErr(err)
+	}
+	r, _ := http.ReadResponse(bufio.NewReader(bytes.NewReader(payload)), nil)
+	if r == nil {
+		return sdk.ActionAbort()
+	}
+	return onResp(r)
 }
 
 func (p parser) OnCheckPayload(ctx *sdk.ParseCtx) (protoNum uint8, protoStr string) {
-	b, err := ctx.GetPayload()
-	if err != nil {
-		return 0, ""
-	}
-	r, _ := http.ReadRequest(bufio.NewReader(bytes.NewReader(b)))
-	if r != nil {
-		return WASM_HTTP_STATUS_REWRITE_PROTOCOL, "HTTP_CUSTOM"
-	}
 	return 0, ""
 }
 
-const BODY_START = `{"OPT_STATUS": "`
-
-func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.ParseAction {
-	if ctx.L7 != WASM_HTTP_STATUS_REWRITE_PROTOCOL {
-		return sdk.ActionNext()
-	}
-	b, err := ctx.GetPayload()
-	if err != nil {
-		return sdk.ActionNext()
-	}
-
-	switch ctx.Direction {
-	case sdk.DirectionRequest:
-		r, _ := http.ReadRequest(bufio.NewReader(bytes.NewReader(b)))
-		if r == nil {
-			return sdk.ActionAbort()
-		}
-		return onReq(r)
-
-	case sdk.DirectionResponse:
-		r, _ := http.ReadResponse(bufio.NewReader(bytes.NewReader(b)), nil)
-		if r == nil {
-			return sdk.ActionAbort()
-		}
-		return onResp(r)
-	default:
-		return sdk.ActionNext()
-	}
-
+func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {
+	return sdk.ActionNext()
 }
 
 func (p parser) HookIn() []sdk.HookBitmap {
 	return []sdk.HookBitmap{
-		sdk.HOOK_POINT_PAYLOAD_PARSE,
+		sdk.HOOK_POINT_HTTP_RESP,
 	}
 }
 
-func onReq(req *http.Request) sdk.ParseAction {
-	return sdk.ParseActionAbortWithL7Info([]*sdk.L7ProtocolInfo{
-		{
-			Req: &sdk.Request{
-				ReqType:  req.Method,
-				Domain:   req.Host,
-				Resource: req.URL.Path,
-				Endpoint: req.Host,
-			},
-		},
-	})
-}
+const BODY_START = `{"OPT_STATUS": "`
 
 /*
 this demo use for convert and rewrite the response code according to the http response data in deepflow server.
@@ -116,7 +76,7 @@ otherwise assume fail and set the http status code to 500, the field map to deep
 	response_result -> if "OPT_STATUS": "SUCCESS" will leave it empty, otherwise will set to the whole http response body
 	response_status -> http code in [200, 400) will act as Ok, [400, 500) will act as client error, [500,-) will act as server error
 */
-func onResp(r *http.Response) sdk.ParseAction {
+func onResp(r *http.Response) sdk.Action {
 	var getStatus = func(statusCode int32) sdk.RespStatus {
 		if statusCode >= 200 && statusCode < 400 {
 			return sdk.RespStatusOk
@@ -127,12 +87,13 @@ func onResp(r *http.Response) sdk.ParseAction {
 		return sdk.RespStatusServerErr
 	}
 
-	var normalResp = func() sdk.ParseAction {
+	var normalResp = func() sdk.Action {
 		code := int32(r.StatusCode)
+		status := getStatus(code)
 		return sdk.ParseActionAbortWithL7Info([]*sdk.L7ProtocolInfo{
 			{
 				Resp: &sdk.Response{
-					Status: getStatus(code),
+					Status: &status,
 					Code:   &code,
 				},
 			},
@@ -201,10 +162,11 @@ func onResp(r *http.Response) sdk.ParseAction {
 		result = string(body)
 	}
 
+	respStatus := getStatus(code)
 	return sdk.ParseActionAbortWithL7Info([]*sdk.L7ProtocolInfo{
 		{
 			Resp: &sdk.Response{
-				Status: getStatus(code),
+				Status: &respStatus,
 				Code:   &code,
 				Result: result,
 			},

@@ -34,11 +34,11 @@ func (p dnsParser) HookIn() []sdk.HookBitmap {
 	}
 }
 
-func (p dnsParser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.HttpAction {
+func (p dnsParser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.Action {
 	return sdk.ActionNext()
 }
 
-func (p dnsParser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.HttpAction {
+func (p dnsParser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 	return sdk.ActionNext()
 }
 
@@ -64,7 +64,7 @@ func (p dnsParser) OnCheckPayload(ctx *sdk.ParseCtx) (uint8, string) {
 	return WASM_DNS_PROTOCOL, "dns"
 }
 
-func (p dnsParser) OnParsePayload(ctx *sdk.ParseCtx) sdk.ParseAction {
+func (p dnsParser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {
 	if ctx.L4 != sdk.UDP || ctx.L7 != WASM_DNS_PROTOCOL {
 		return sdk.ActionNext()
 	}
@@ -108,8 +108,9 @@ func (p dnsParser) OnParsePayload(ctx *sdk.ParseCtx) sdk.ParseAction {
 				case *dnsmessage.AResource:
 					ip = r.A[:]
 				}
+				status := sdk.RespStatusOk
 				resp = &sdk.Response{
-					Status: sdk.RespStatusOk,
+					Status: &status,
 					Result: ip.String(),
 				}
 				break

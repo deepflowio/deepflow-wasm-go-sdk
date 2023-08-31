@@ -45,7 +45,7 @@ assume the http request as follow:
 	GET /user_info?username=test&type=1 HTTP/1.1
 	Custom-Trace-Info: trace_id: xxx, span_id: sss
 */
-func (p httpHook) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.HttpAction {
+func (p httpHook) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.Action {
 	baseCtx := &ctx.BaseCtx
 	if baseCtx.DstPort != 8080 || !strings.HasPrefix(ctx.Path, "/user_info?") {
 		return sdk.ActionNext()
@@ -105,7 +105,7 @@ func (p httpHook) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.HttpAction {
 		}
 	}
 
-	return sdk.HttpActionAbortWithResult(trace, attr)
+	return sdk.HttpReqActionAbortWithResult(nil, trace, attr)
 }
 
 /*
@@ -115,7 +115,7 @@ assume resp as follow:
 
 	{"code": 0, "data": {"user_id": 12345, "register_time": 1682050409}}
 */
-func (p httpHook) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.HttpAction {
+func (p httpHook) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 	baseCtx := &ctx.BaseCtx
 	if baseCtx.SrcPort != 8080 {
 		return sdk.ActionNext()
@@ -139,7 +139,7 @@ func (p httpHook) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.HttpAction {
 			userID := fastjson.GetInt(body, "data", "user_id")
 			t := fastjson.GetInt(body, "data", "register_time")
 
-			return sdk.HttpActionAbortWithResult(nil, []sdk.KeyVal{
+			return sdk.HttpRespActionAbortWithResult(nil, nil, []sdk.KeyVal{
 				{
 					Key: "user_id",
 					Val: strconv.Itoa(userID),
@@ -161,7 +161,7 @@ func (p httpHook) OnCheckPayload(baseCtx *sdk.ParseCtx) (uint8, string) {
 	return 0, ""
 }
 
-func (p httpHook) OnParsePayload(baseCtx *sdk.ParseCtx) sdk.ParseAction {
+func (p httpHook) OnParsePayload(baseCtx *sdk.ParseCtx) sdk.Action {
 	return sdk.ActionNext()
 }
 
