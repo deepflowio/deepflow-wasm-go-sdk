@@ -42,23 +42,21 @@ func onHttpReq() bool {
 		return false
 	}
 
-	trace, attr, err := act.getHttpResult()
+	info, err := act.getParsePayloadResult()
 	if err != nil {
 		Error("on http req encounter error: %v", err)
 		return act.abort()
 	}
-
-	// when abort with no error, set the result and write to host
-	if trace == nil && len(attr) == 0 {
+	if len(info) > 1 {
+		Error("on http req return multi info")
 		return act.abort()
 	}
 
-	result := [HTTP_RESULT_BUF_SIZE]byte{}
-	off, ok := serializeHttpResult(result[:], trace, attr)
-	if !ok {
+	data := serializeL7ProtocolInfo(info, DirectionRequest)
+	if data == nil {
 		return act.abort()
 	}
-	hostReadHttpResult(&result[0], off)
+	hostReadL7ProtocolInfo(&data[0], len(data))
 	return act.abort()
 }
 
@@ -87,23 +85,26 @@ func onHttpResp() bool {
 		return false
 	}
 
-	trace, attr, err := act.getHttpResult()
+	info, err := act.getParsePayloadResult()
 	if err != nil {
-		Error("on http resp encounter error: %v", err)
+		Error("on http req encounter error: %v", err)
 		return act.abort()
 	}
 
-	// when abort with no error, set the result and write to host
-	if trace == nil && len(attr) == 0 {
+	if len(info) > 1 {
+		Error("on http resp return multi info")
 		return act.abort()
+	}
+	if len(info) > 0 && info[0].Resp.Status == nil {
+		// preserve the status if not rewrite
+		info[0].Resp.Status = &ctx.Status
 	}
 
-	result := [HTTP_RESULT_BUF_SIZE]byte{}
-	off, ok := serializeHttpResult(result[:], trace, attr)
-	if !ok {
+	data := serializeL7ProtocolInfo(info, DirectionResponse)
+	if data == nil {
 		return act.abort()
 	}
-	hostReadHttpResult(&result[0], off)
+	hostReadL7ProtocolInfo(&data[0], len(data))
 	return act.abort()
 }
 

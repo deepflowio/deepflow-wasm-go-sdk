@@ -50,19 +50,9 @@ type KeyVal struct {
 	Val string
 }
 
-type HttpAction interface {
-	abort() bool
-	getHttpResult() (*Trace, []KeyVal, error)
-}
-
-type ParseAction interface {
+type Action interface {
 	abort() bool
 	getParsePayloadResult() ([]*L7ProtocolInfo, error)
-}
-
-type Action interface {
-	HttpAction
-	ParseAction
 }
 
 func ActionAbort() Action {
@@ -86,26 +76,18 @@ func ActionNext() Action {
 
 // agent will traversal to run all plugins, abort will abort the traversal, abort with no error will write the result to host.
 type Parser interface {
-	OnHttpReq(*HttpReqCtx) HttpAction
-	OnHttpResp(*HttpRespCtx) HttpAction
+	OnHttpReq(*HttpReqCtx) Action
+	OnHttpResp(*HttpRespCtx) Action
 	// protoNum return 0 indicate fail
 	OnCheckPayload(*ParseCtx) (protoNum uint8, protoStr string)
-	OnParsePayload(*ParseCtx) ParseAction
+	OnParsePayload(*ParseCtx) Action
 	HookIn() []HookBitmap
 }
 
 type action struct {
-	e          error
-	isAbort    bool
-	httpResult struct {
-		trace *Trace
-		kv    []KeyVal
-	}
+	e             error
+	isAbort       bool
 	payloadResult []*L7ProtocolInfo
-}
-
-func (a *action) getHttpResult() (*Trace, []KeyVal, error) {
-	return a.httpResult.trace, a.httpResult.kv, a.e
 }
 
 func (a *action) getParsePayloadResult() ([]*L7ProtocolInfo, error) {
@@ -116,17 +98,39 @@ func (e *action) abort() bool {
 	return e.isAbort
 }
 
-func HttpActionAbortWithResult(trace *Trace, kv []KeyVal) HttpAction {
+func HttpReqActionAbortWithResult(req *Request, trace *Trace, kv []KeyVal) Action {
+	if req == nil {
+		req = &Request{}
+	}
 	return &action{
 		isAbort: true,
-		httpResult: struct {
-			trace *Trace
-			kv    []KeyVal
-		}{trace: trace, kv: kv},
+		payloadResult: []*L7ProtocolInfo{
+			{
+				Req:   req,
+				Trace: trace,
+				Kv:    kv,
+			},
+		},
 	}
 }
 
-func ParseActionAbortWithL7Info(info []*L7ProtocolInfo) ParseAction {
+func HttpRespActionAbortWithResult(resp *Response, trace *Trace, kv []KeyVal) Action {
+	if resp == nil {
+		resp = &Response{}
+	}
+	return &action{
+		isAbort: true,
+		payloadResult: []*L7ProtocolInfo{
+			{
+				Resp:  resp,
+				Trace: trace,
+				Kv:    kv,
+			},
+		},
+	}
+}
+
+func ParseActionAbortWithL7Info(info []*L7ProtocolInfo) Action {
 	return &action{
 		isAbort:       true,
 		payloadResult: info,
