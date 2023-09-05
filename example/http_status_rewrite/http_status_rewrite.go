@@ -20,8 +20,8 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
-	"github.com/valyala/fastjson"
 	"io"
 	"net/http"
 	"strings"
@@ -122,12 +122,23 @@ func onResp(r *http.Response) sdk.Action {
 		return normalResp()
 	}
 
+	m := make(map[string]interface{})
+	json.Unmarshal(body, &m)
+
+	var status string
+	_status, ok := m["OPT_STATUS"]
+	if ok {
+		status, ok = _status.(string)
+		if !ok {
+			return normalResp()
+		}
+	}
+
 	/*
 		due to tcp fragment, it is possible to receive the incomplete json data. if can not get the json key,
 		try to get the OPT_STATUS from json start like `{"OPT_STATUS": "SOME STATUS"`, parse the key as much as possible.
 		FIXME: remove the incomplete json data parse after agent implement tcp reassemble.
 	*/
-	status := fastjson.GetString(body, "OPT_STATUS")
 	if status == "" {
 		if !strings.HasPrefix(string(buf), BODY_START) {
 			return normalResp()
