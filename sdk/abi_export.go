@@ -53,7 +53,7 @@ func onHttpReq() bool {
 	}
 
 	data := serializeL7ProtocolInfo(info, DirectionRequest)
-	if data == nil {
+	if len(data) == 0 {
 		return act.abort()
 	}
 	hostReadL7ProtocolInfo(&data[0], len(data))
@@ -101,7 +101,7 @@ func onHttpResp() bool {
 	}
 
 	data := serializeL7ProtocolInfo(info, DirectionResponse)
-	if data == nil {
+	if len(data) == 0 {
 		return act.abort()
 	}
 	hostReadL7ProtocolInfo(&data[0], len(data))
@@ -170,7 +170,7 @@ func parsePayload() bool {
 	}
 
 	data := serializeL7ProtocolInfo(infos, parseCtx.Direction)
-	if data == nil {
+	if len(data) == 0 {
 		return act.abort()
 	}
 	hostReadL7ProtocolInfo(&data[0], len(data))
