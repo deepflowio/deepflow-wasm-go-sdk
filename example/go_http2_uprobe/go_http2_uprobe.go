@@ -40,7 +40,6 @@ func (p parser) OnCheckPayload(ctx *sdk.ParseCtx) (protoNum uint8, protoStr stri
 		return 0, ""
 	}
 	if _, _, _, err := parseHeader(payload); err != nil {
-		sdk.Error("%v", err)
 		return 0, ""
 	}
 	return GO_HTTP2_EBPF_PROTOCOL, "ebpf_go_http2"
@@ -54,17 +53,20 @@ func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {
 	if err != nil {
 		return sdk.ActionAbortWithErr(err)
 	}
+	defaultStatus := sdk.RespStatusOk
 	switch ctx.EbpfType {
 	case sdk.EbpfTypeGoHttp2Uprobe:
 		streamID, key, val, err := parseHeader(payload)
 		if err != nil {
-			sdk.Error("%v", err)
 			return sdk.ActionAbortWithErr(err)
 		}
+
 		info := &sdk.L7ProtocolInfo{
-			RequestID:     &streamID,
-			Req:           &sdk.Request{},
-			Resp:          &sdk.Response{},
+			RequestID: &streamID,
+			Req:       &sdk.Request{},
+			Resp: &sdk.Response{
+				Status: &defaultStatus,
+			},
 			ProtocolMerge: true,
 		}
 		if err := onHeader(info, key, val); err != nil {
@@ -97,7 +99,9 @@ func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {
 					Val: resp.Msg,
 				},
 			}
-			infoResp = &sdk.Response{}
+			infoResp = &sdk.Response{
+				Status: &defaultStatus,
+			}
 		case sdk.DirectionRequest:
 			req := &pb.OrderRequest{}
 			if err := req.UnmarshalVT(data); err != nil {
