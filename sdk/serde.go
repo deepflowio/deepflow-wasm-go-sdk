@@ -319,11 +319,11 @@ func serializeKV(attr []KeyVal, buf []byte, offset *int) bool {
 
 	info len: 2 bytes
 
-	req len:  4	bytes: | 1 bit: is nil? | 31bit length |
+	req len:        4 bytes: | 1 bit: is nil? | 31bit length |
 
-	resp len:  4 bytes: | 1 bit: is nil? | 31bit length |
+	resp len:       4 bytes: | 1 bit: is nil? | 31bit length |
 
-	has request id: 1 bytes:  0 or 1
+	bit flag:       1 bytes: | has req_id | has trace |  has ext_info | has kv | 4 bit reserve |
 
 	if has request id:
 
@@ -339,23 +339,22 @@ func serializeKV(attr []KeyVal, buf []byte, offset *int) bool {
 
 	need_protocol_merge: 1 byte, the msb indicate is need protocol merge, the lsb indicate is end, such as 1 000000 1
 
-	has trace: 1 byte
-
 	if has trace:
 
 		trace_id, span_id, parent_span_id
 		(
 
-		key len: 2 bytes
-		key:     $(key len) bytes
+			key len: 2 bytes
+			key:     $(key len) bytes
 
-		val len: 2 bytes
-		val:     $(val len) bytes
+			val len: 2 bytes
+			val:     $(val len) bytes
 
 		) x 3
 
+	if has ext:
+		ext
 
-	has kv:  1 byte
 	if has kv
 		(
 			key len: 2 bytes
@@ -368,6 +367,14 @@ func serializeKV(attr []KeyVal, buf []byte, offset *int) bool {
 
 ) x len(infos)
 */
+
+const (
+	HAS_REQ_ID   uint8 = 1 << 7
+	HAS_TRACE    uint8 = 1 << 6
+	HAS_EXT_INFO uint8 = 1 << 5
+	HAS_KV       uint8 = 1 << 4
+)
+
 func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byte {
 	buf := [L7_INFO_BUF_SIZE]byte{}
 	off := 0
@@ -407,21 +414,20 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 		}
 		off += 4
 
-		// serialize request id
+		if !checkLen(1) {
+			return nil
+		}
+		bitOff := off
+		off += 1
+
 		if info.RequestID != nil {
-			if !checkLen(5) {
+			buf[bitOff] |= HAS_REQ_ID
+
+			if !checkLen(4) {
 				return nil
 			}
-			buf[off] = 1
-			off += 1
 			binary.BigEndian.PutUint32(buf[off:off+4], *info.RequestID)
 			off += 4
-		} else {
-			if !checkLen(1) {
-				return nil
-			}
-			buf[off] = 0
-			off += 1
 		}
 
 		// serialize req/resp
@@ -462,16 +468,8 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 		buf[off] = needProtocolMerge
 		off += 1
 
-		// serialize trace info
-		if !checkLen(1) {
-			return nil
-		}
-		if info.Trace == nil {
-			buf[off] = 0
-			off += 1
-		} else {
-			buf[off] = 1
-			off += 1
+		if info.Trace != nil {
+			buf[bitOff] |= HAS_TRACE
 			if !(writeStr(info.Trace.TraceID, buf[:], &off) &&
 				writeStr(info.Trace.SpanID, buf[:], &off) &&
 				writeStr(info.Trace.ParentSpanID, buf[:], &off)) {
@@ -480,21 +478,22 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 			}
 		}
 
-		// serialize kv
-		if !checkLen(1) {
-			return nil
+		if info.ExtInfo != nil {
+			buf[bitOff] |= HAS_EXT_INFO
+			size = serializeL7ExtInfo(info.ExtInfo, buf[off:])
+			if size == 0 {
+				Error("serialize L7ProtocolInfo ext info fail")
+				return nil
+			}
+			off += size
 		}
+
 		if len(info.Kv) != 0 {
-			buf[off] = 1
-			off += 1
+			buf[bitOff] |= HAS_KV
 			if !serializeKV(info.Kv, buf[:], &off) {
 				return nil
 			}
-		} else {
-			buf[off] = 0
-			off += 1
 		}
-
 		binary.BigEndian.PutUint16(buf[start:start+2], uint16(off-start-2))
 	}
 	return buf[:off]
@@ -565,4 +564,26 @@ func serializeL7InfoResp(resp *Response, buf []byte) int {
 		return off
 	}
 	return 0
+}
+
+/*
+info size:  2 bytes
+row effect: 4 bytes
+*/
+func serializeL7ExtInfo(ext *ExtInfo, buf []byte) int {
+	if len(buf) < 6 {
+		return 0
+	}
+
+	var (
+		extLen uint16 = 0
+		extBuf        = buf[2:]
+	)
+
+	binary.BigEndian.PutUint32(extBuf, ext.RowEffect)
+	extLen += 4
+
+	binary.BigEndian.PutUint16(buf, extLen)
+
+	return int(extLen) + 2
 }

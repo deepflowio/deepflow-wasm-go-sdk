@@ -115,6 +115,10 @@ type Trace struct {
 	ParentSpanID string
 }
 
+type ExtInfo struct {
+	RowEffect uint32
+}
+
 type L7ProtocolInfo struct {
 	ReqLen    *int
 	RespLen   *int
@@ -122,6 +126,7 @@ type L7ProtocolInfo struct {
 	Req       *Request
 	Resp      *Response
 	Trace     *Trace
+	ExtInfo   *ExtInfo
 	Kv        []KeyVal
 	// cache the log in session merge and merge multi times until request end and response end
 	ProtocolMerge bool
