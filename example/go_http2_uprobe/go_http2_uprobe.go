@@ -161,7 +161,7 @@ func parseHeader(payload []byte) (uint32, string, string, error) {
 	streamID := binary.LittleEndian.Uint32(payload[4:8])
 	keyLen := int(binary.LittleEndian.Uint32(payload[8:12]))
 	valLen := int(binary.LittleEndian.Uint32(payload[12:16]))
-	if keyLen+valLen+16 > len(payload) {
+	if keyLen < 0 || keyLen < 0 || keyLen+valLen+16 > len(payload) {
 		return 0, "", "", fmt.Errorf("header kv length too short, key len: %d, val len: %d, payload len: %d", keyLen, valLen, len(payload))
 	}
 
