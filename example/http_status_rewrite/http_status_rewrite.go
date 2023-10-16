@@ -65,7 +65,7 @@ func (p parser) HookIn() []sdk.HookBitmap {
 	}
 }
 
-const BODY_START = `{"OPT_STATUS": "`
+const BODY_START = `{"OPT_STATUS":"`
 
 /*
 this demo use for convert and rewrite the response code according to the http response data in deepflow server.
@@ -140,7 +140,7 @@ func onResp(r *http.Response) sdk.Action {
 		FIXME: remove the incomplete json data parse after agent implement tcp reassemble.
 	*/
 	if status == "" {
-		if !strings.HasPrefix(string(buf), BODY_START) {
+		if !strings.HasPrefix(string(body), BODY_START) {
 			return normalResp()
 		}
 		buf = body[len(BODY_START):]
