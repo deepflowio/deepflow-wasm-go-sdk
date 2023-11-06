@@ -139,7 +139,7 @@ func (p parser) OnCheckPayload(ctx *sdk.ParseCtx) (protoNum uint8, protoStr stri
 	if err := info.parse(payload, true); err != nil || info.MsgType != sdk.DirectionRequest {
 		return 0, ""
 	}
-	return KRPC_PROTOCOL, "Krpc"
+	return KRPC_PROTOCOL, "KRPC"
 }
 
 func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {
