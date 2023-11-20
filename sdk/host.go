@@ -86,7 +86,10 @@ func (p *ParseCtx) GetPayload() ([]byte, error) {
 	if p.payload != nil {
 		return p.payload, nil
 	}
-	payload := [PAYLOAD_BUF_SIZE]byte{}
+	if int(p.BufSize) > PAGE_SIZE {
+		Warn("payload buffer size %d greater than page size", p.BufSize)
+	}
+	payload := make([]byte, p.BufSize)
 	payloadSize := vmReadPayload(&payload[0], len(payload))
 	if payloadSize < 0 {
 		return nil, errors.New("read payload fail")
