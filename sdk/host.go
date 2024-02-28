@@ -129,5 +129,6 @@ type L7ProtocolInfo struct {
 	// cache the log in session merge and merge multi times until request end and response end
 	ProtocolMerge bool
 	// request/response end
-	IsEnd bool
+	IsEnd   bool
+	BizType uint8
 }

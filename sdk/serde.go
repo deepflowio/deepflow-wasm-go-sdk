@@ -365,6 +365,8 @@ func serializeKV(attr []KeyVal, buf []byte, offset *int) bool {
 
 		) x len(kv)
 
+	biz type: 1 byte
+
 ) x len(infos)
 */
 func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byte {
@@ -493,6 +495,13 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 			buf[off] = 0
 			off += 1
 		}
+
+		// serialize biz type
+		if !checkLen(1) {
+			return nil
+		}
+		buf[off] = info.BizType
+		off += 1
 
 		binary.BigEndian.PutUint16(buf[start:start+2], uint16(off-start-2))
 	}
