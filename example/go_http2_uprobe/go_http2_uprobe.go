@@ -4,12 +4,13 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/deepflowio/deepflow-wasm-go-sdk/example/go_http2_uprobe/pb"
 	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
-	"strconv"
 )
 
-//go:generate  mkdir ./pb
+//go:generate  mkdir -p ./pb
 //go:generate  protoc --go-plugin_out=./pb --go-plugin_opt=paths=source_relative ./pb.proto
 func main() {
 	sdk.SetParser(parser{})
@@ -21,6 +22,7 @@ const (
 )
 
 type parser struct {
+	sdk.DefaultParser
 }
 
 func (p parser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.Action {

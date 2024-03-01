@@ -44,6 +44,12 @@ func vmReadHttpReqInfo(b *byte, length int) int
 //export vm_read_http_resp_info
 func vmReadHttpRespInfo(b *byte, length int) int
 
+// return size, 0 indicate fail
+//
+//go:wasm-module deepflow
+//export vm_read_custom_message_info
+func vmReadCustomMessageInfo(b *byte, length int) int
+
 //go:wasm-module deepflow
 //export host_read_l7_protocol_info
 func hostReadL7ProtocolInfo(b *byte, length int) bool

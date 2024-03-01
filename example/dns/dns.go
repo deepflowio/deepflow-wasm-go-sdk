@@ -26,7 +26,9 @@ import (
 
 const WASM_DNS_PROTOCOL uint8 = 1
 
-type dnsParser struct{}
+type dnsParser struct {
+	sdk.DefaultParser
+}
 
 func (p dnsParser) HookIn() []sdk.HookBitmap {
 	return []sdk.HookBitmap{

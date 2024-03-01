@@ -21,9 +21,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/deepflowio/deepflow-wasm-go-sdk/example/krpc/pb"
 	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
-	"strconv"
 )
 
 const (
@@ -120,6 +121,7 @@ func (k *KrpcInfo) isHeartBeat() bool {
 }
 
 type parser struct {
+	sdk.DefaultParser
 }
 
 func (p parser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.Action {
@@ -204,6 +206,8 @@ func (p parser) HookIn() []sdk.HookBitmap {
 	}
 }
 
+//go:generate mkdir -p ./pb
+//go:generate protoc --go-plugin_out=./pb --go-plugin_opt=paths=source_relative ./krpc_meta.proto
 func main() {
 	sdk.Info("krpc wasm plugin load")
 	sdk.SetParser(parser{})

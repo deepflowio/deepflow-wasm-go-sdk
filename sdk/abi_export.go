@@ -108,6 +108,48 @@ func onHttpResp() bool {
 	return act.abort()
 }
 
+//export on_custom_message
+func onCustomMessage() bool {
+	if vmParser == nil {
+		return false
+	}
+	paramBuf := [PARSE_PARAM_BUF_SIZE]byte{}
+	ctxSize := vmReadCtxBase(&paramBuf[0], len(paramBuf))
+	if ctxSize == 0 {
+		return false
+	}
+	customMessageInfo := [CUSTOM_MESSAGE_BUF_SIZE]byte{}
+	messageCtxSize := vmReadCustomMessageInfo(&customMessageInfo[0], len(customMessageInfo))
+	if messageCtxSize == 0 {
+		return false
+	}
+	ctx := deserializeCustomMessageCtx(paramBuf[:ctxSize], customMessageInfo[:messageCtxSize])
+	if ctx == nil {
+		return false
+	}
+	act := vmParser.OnCustomMessage(ctx)
+	if act == nil {
+		return false
+	}
+
+	info, err := act.getParsePayloadResult()
+	if err != nil {
+		Error("on custom message encounter error: %v", err)
+		return act.abort()
+	}
+	if len(info) > 1 {
+		Error("on custom message return multi info")
+		return act.abort()
+	}
+
+	data := serializeL7ProtocolInfo(info, ctx.BaseCtx.Direction)
+	if len(data) == 0 {
+		return act.abort()
+	}
+	hostReadL7ProtocolInfo(&data[0], len(data))
+	return act.abort()
+}
+
 //export check_payload
 func checkPayload() uint8 {
 	if vmParser == nil {
@@ -194,4 +236,14 @@ func getHookBitmap() *byte {
 	binary.BigEndian.PutUint64(bitmap[:8], hookBit[0])
 	binary.BigEndian.PutUint64(bitmap[8:], hookBit[1])
 	return &bitmap[0]
+}
+
+//export get_custom_message_hook
+func getCustomMessageHook() *byte {
+	if vmParser == nil {
+		return nil
+	}
+	data := [8]byte{}
+	binary.BigEndian.PutUint64(data[:], vmParser.CustomMessageHookIn())
+	return &data[0]
 }

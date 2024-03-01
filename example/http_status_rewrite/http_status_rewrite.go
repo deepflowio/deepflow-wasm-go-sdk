@@ -21,10 +21,11 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
-	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
 )
 
 func main() {
@@ -33,6 +34,7 @@ func main() {
 }
 
 type parser struct {
+	sdk.DefaultParser
 }
 
 func (p parser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.Action {
