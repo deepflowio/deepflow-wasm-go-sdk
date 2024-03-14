@@ -26,6 +26,7 @@ const PAGE_SIZE = 65536
 const PARSE_PARAM_BUF_SIZE = 1024
 const HTTP_REQ_BUF_SIZE = PAGE_SIZE
 const HTTP_RESP_BUF_SIZE = 3
+const CUSTOM_MESSAGE_BUF_SIZE = PAGE_SIZE
 const KV_SERDE_BUF_SIZE = PAGE_SIZE
 const L7_INFO_BUF_SIZE = PAGE_SIZE
 
@@ -188,6 +189,37 @@ func deserializeParseCtx(b []byte) *ParseCtx {
 
 	ctx.BufSize = binary.BigEndian.Uint16(b[off : off+2])
 	off += 2
+
+	return ctx
+}
+
+/*
+hook_point:	  2 byte
+type_code:	  4 byte
+protobuf_len: 4 byte
+protobuf:	  $(protobuf_len) byte
+*/
+func deserializeCustomMessageCtx(paramBuf, CustomMessageBuf []byte) *CustomMessageCtx {
+	msgBufLen := len(CustomMessageBuf)
+	if msgBufLen < 10 {
+		return nil
+	}
+
+	baseCtx := deserializeParseCtx(paramBuf)
+	if baseCtx == nil {
+		return nil
+	}
+	ctx := &CustomMessageCtx{
+		BaseCtx: *baseCtx,
+	}
+	ctx.HookPoint = binary.BigEndian.Uint16(CustomMessageBuf[:2])
+	ctx.TypeCode = binary.BigEndian.Uint32(CustomMessageBuf[2:6])
+	len := binary.BigEndian.Uint32(CustomMessageBuf[6:10])
+	if len+10 > uint32(msgBufLen) {
+		Error("CustomMessageCtx deserialize fail")
+		return nil
+	}
+	ctx.Payload = CustomMessageBuf[10 : 10+len]
 
 	return ctx
 }

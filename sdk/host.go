@@ -65,6 +65,26 @@ type HttpRespCtx struct {
 	Status  RespStatus
 }
 
+const (
+	ProtocolParse uint16 = 0
+	SessionFilter uint16 = 1
+	Sampling      uint16 = 2
+)
+
+type CustomMessageCtx struct {
+	BaseCtx   ParseCtx
+	HookPoint uint16
+	TypeCode  uint32
+	Payload   []byte
+}
+
+func (ctx *CustomMessageCtx) CheckParseProtocol(protocol uint16, isRequest bool) bool {
+	if isRequest {
+		return ctx.HookPoint == ProtocolParse && ctx.TypeCode == uint32(protocol)
+	}
+	return false
+}
+
 type ParseCtx struct {
 	SrcIP     net.IPAddr
 	SrcPort   uint16
