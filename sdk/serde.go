@@ -368,6 +368,9 @@ func serializeKV(attr []KeyVal, buf []byte, offset *int) bool {
 
 		resp
 
+	l7_protocol_str len: 2 bytes
+	l7_protocol_str:     $(l7_protocol_str len) bytes
+
 	need_protocol_merge: 1 byte, the msb indicate is need protocol merge, the lsb indicate is end, such as 1 000000 1
 
 	has trace: 1 byte
@@ -479,6 +482,12 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 			return nil
 		}
 		off += size
+
+		// serialize l7_protocol_str
+		if !writeStr(info.L7ProtocolStr, buf[:], &off) {
+			Error("serialize L7ProtocolInfo l7_protocol_str fail")
+			return nil
+		}
 
 		// serialize need_merge_protocol
 		if !checkLen(1) {
