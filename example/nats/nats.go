@@ -69,14 +69,20 @@ func (p NrpcParser) OnNatsMessage(message sdkpb.NatsMessage) sdk.Action {
 		}
 	}
 	jsonStr := string(pb.ProtobufToJson(service, method, isRequest, []byte(message.Payload)))
-	return sdk.CustomMessageActionAbortWithResult([]sdk.KeyVal{
-		{
-			Key: "json_payload",
-			Val: jsonStr,
+	return sdk.ParseActionAbortWithL7Info([]*sdk.L7ProtocolInfo{{
+		Resp:  &sdk.Response{},
+		Req:   &sdk.Request{},
+		Trace: nil,
+		Kv: []sdk.KeyVal{
+			{
+				Key: "json_payload",
+				Val: jsonStr,
+			},
+			{
+				Key: "call_id",
+				Val: callId,
+			},
 		},
-		{
-			Key: "call_id",
-			Val: callId,
-		},
-	})
+		L7ProtocolStr: "nRPC",
+	}})
 }
