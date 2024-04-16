@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = ".;pb";
+
+service Game {
+  rpc Game(OrderRequest) returns (OrderResponse);
+}
+
+message OrderRequest {
+  string business_id = 1235;
+}
+
+message OrderResponse {
+  string msg = 1235;
+}
+
+message MessageWrapper {
+    oneof message {
+        OrderRequest request = 1;
+        OrderResponse response = 2;
+    }
+}

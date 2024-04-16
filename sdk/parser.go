@@ -54,6 +54,7 @@ var (
 
 var (
 	PROTOCOL_NATS uint16 = 104
+	PROTOCOL_ZMTP uint16 = 106
 )
 
 var CUSTOM_MESSAGE_HOOK_ALL uint64 = 0xff << 48
