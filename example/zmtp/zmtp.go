@@ -45,12 +45,18 @@ func (p ZrpcParser) onZMTPMessage(payload []byte) sdk.Action {
 		jsonData = nil
 	}
 	jsonStr := string(jsonData)
-	return sdk.CustomMessageActionAbortWithResult([]sdk.KeyVal{
-		{
-			Key: "json_payload",
-			Val: jsonStr,
+	return sdk.ParseActionAbortWithL7Info([]*sdk.L7ProtocolInfo{{
+		Resp:  &sdk.Response{},
+		Req:   &sdk.Request{},
+		Trace: nil,
+		Kv: []sdk.KeyVal{
+			{
+				Key: "json_payload",
+				Val: jsonStr,
+			},
 		},
-	})
+		L7ProtocolStr: "Protobuf",
+	}})
 }
 
 func (p ZrpcParser) OnCustomMessage(ctx *sdk.CustomMessageCtx) sdk.Action {
