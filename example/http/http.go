@@ -27,6 +27,7 @@ import (
 
 	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
 	"github.com/valyala/fastjson"
+	_ "github.com/wasilibs/nottinygc"
 )
 
 type httpHook struct {

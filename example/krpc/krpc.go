@@ -25,6 +25,7 @@ import (
 
 	"github.com/deepflowio/deepflow-wasm-go-sdk/example/krpc/pb"
 	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
+	_ "github.com/wasilibs/nottinygc"
 )
 
 const (

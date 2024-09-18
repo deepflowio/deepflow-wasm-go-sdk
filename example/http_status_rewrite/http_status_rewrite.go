@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
+	_ "github.com/wasilibs/nottinygc"
 )
 
 func main() {

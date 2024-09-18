@@ -6,6 +6,7 @@ import (
 	"github.com/deepflowio/deepflow-wasm-go-sdk/example/zmtp/pb"
 	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
 	sdkpb "github.com/deepflowio/deepflow-wasm-go-sdk/sdk/pb"
+	_ "github.com/wasilibs/nottinygc"
 )
 
 //go:generate mkdir -p pb

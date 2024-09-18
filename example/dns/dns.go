@@ -19,9 +19,9 @@ package main
 import (
 	"net"
 
-	"golang.org/x/net/dns/dnsmessage"
-
 	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
+	_ "github.com/wasilibs/nottinygc"
+	"golang.org/x/net/dns/dnsmessage"
 )
 
 const WASM_DNS_PROTOCOL uint8 = 1
