@@ -8,6 +8,7 @@ import (
 
 	"github.com/deepflowio/deepflow-wasm-go-sdk/example/go_http2_uprobe/pb"
 	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
+	_ "github.com/wasilibs/nottinygc"
 )
 
 //go:generate  mkdir -p ./pb
