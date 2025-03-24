@@ -87,7 +87,7 @@ func onHttpResp() bool {
 
 	info, err := act.getParsePayloadResult()
 	if err != nil {
-		Error("on http req encounter error: %v", err)
+		Error("on http resp encounter error: %v", err)
 		return act.abort()
 	}
 

@@ -15,7 +15,7 @@
  */
 
 //go:generate mkdir -p pb
-//go:generate protoc --go_out=./pb --go-vtproto_out=./pb --go-vtproto_opt=features=unmarshal ./WasmPluginApi.proto
+//go:generate protoc --go_out=./pb --go-vtproto_out=./pb --go-vtproto_opt=features=size+marshal+unmarshal ./WasmPluginApi.proto
 package sdk
 
 import "github.com/deepflowio/deepflow-wasm-go-sdk/sdk/pb"

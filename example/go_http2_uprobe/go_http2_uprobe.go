@@ -11,8 +11,8 @@ import (
 	_ "github.com/wasilibs/nottinygc"
 )
 
-//go:generate  mkdir -p ./pb
-//go:generate  protoc --go-plugin_out=./pb --go-plugin_opt=paths=source_relative ./pb.proto
+//go:generate mkdir -p ./pb
+//go:generate protoc --go_out=./pb ./pb.proto
 func main() {
 	sdk.SetParser(parser{})
 	sdk.Warn("plugin loaded")

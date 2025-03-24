@@ -208,7 +208,7 @@ func (p parser) HookIn() []sdk.HookBitmap {
 }
 
 //go:generate mkdir -p ./pb
-//go:generate protoc --go-plugin_out=./pb --go-plugin_opt=paths=source_relative ./krpc_meta.proto
+//go:generate protoc --go_out=./pb ./krpc_meta.proto
 func main() {
 	sdk.Info("krpc wasm plugin load")
 	sdk.SetParser(parser{})
