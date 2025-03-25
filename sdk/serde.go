@@ -20,6 +20,9 @@ import (
 	"encoding/binary"
 	"net"
 	"strconv"
+
+	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk/pb"
+	"google.golang.org/protobuf/proto"
 )
 
 const PAGE_SIZE = 65536
@@ -292,11 +295,10 @@ func deserializeHttpRespCtx(paramBuf, httpRespBuf []byte) *HttpRespCtx {
 
 	status := RespStatus(httpRespBuf[2])
 	switch status {
-	case RespStatusOk, RespStatusNotExist, RespStatusServerErr, RespStatusClientErr:
+	case RespStatusOk, RespStatusTimeout, RespStatusServerErr, RespStatusClientErr, RespStatusUnknown:
 	default:
 		Error("httpRespBuf recv unknown status: %d", status)
 		return nil
-
 	}
 
 	baseCtx := deserializeParseCtx(paramBuf)
@@ -418,200 +420,111 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 
 	for _, info := range infos {
 		start := off
-		// leave 2 bytes as length
-		off += 2
-
-		// serialize req len
-		if !checkLen(4) {
-			return nil
-		}
-		if info.ReqLen == nil {
-			binary.BigEndian.PutUint32(buf[off:off+4], 0)
-		} else {
-			binary.BigEndian.PutUint32(buf[off:off+4], uint32(*info.ReqLen)|(1<<31))
-		}
+		// leave 2 bytes as length, 2 bytes as magic (PB)
 		off += 4
 
-		// serialize resp len
-		if !checkLen(4) {
-			return nil
-		}
-		if info.RespLen == nil {
-			binary.BigEndian.PutUint32(buf[off:off+4], 0)
-		} else {
-			binary.BigEndian.PutUint32(buf[off:off+4], uint32(*info.RespLen)|(1<<31))
-		}
-		off += 4
+		var msg pb.AppInfo
 
-		// serialize request id
+		if info.ReqLen != nil {
+			msg.ReqLen = proto.Uint32(uint32(*info.ReqLen))
+		}
+
+		if info.RespLen != nil {
+			msg.RespLen = proto.Uint32(uint32(*info.RespLen))
+		}
+
 		if info.RequestID != nil {
-			if !checkLen(5) {
-				return nil
-			}
-			buf[off] = 1
-			off += 1
-			binary.BigEndian.PutUint32(buf[off:off+4], *info.RequestID)
-			off += 4
-		} else {
-			if !checkLen(1) {
-				return nil
-			}
-			buf[off] = 0
-			off += 1
+			msg.RequestId = proto.Uint32(uint32(*info.RequestID))
 		}
 
-		// serialize req/resp
-		size := 0
 		switch direction {
 		case DirectionRequest:
 			if info.Req == nil {
 				Error("c2s data but request is nil")
 				return nil
 			}
-			size = serializeL7InfoReq(info.Req, buf[off:])
+			msg.Info = &pb.AppInfo_Req{
+				Req: &pb.AppRequest{
+					Version:  proto.String(info.Req.Version),
+					Type:     proto.String(info.Req.ReqType),
+					Endpoint: proto.String(info.Req.Endpoint),
+					Domain:   proto.String(info.Req.Domain),
+					Resource: proto.String(info.Req.Resource),
+				},
+			}
 		case DirectionResponse:
 			if info.Resp == nil {
 				Error("s2c data but resp is nil")
 				return nil
 			}
-			size = serializeL7InfoResp(info.Resp, buf[off:])
-		}
 
-		if size == 0 {
-			Error("serialize L7ProtocolInfo req or resp fail")
-			return nil
-		}
-		off += size
-
-		// serialize l7_protocol_str
-		if !writeStr(info.L7ProtocolStr, buf[:], &off) {
-			Error("serialize L7ProtocolInfo l7_protocol_str fail")
-			return nil
-		}
-
-		// serialize need_merge_protocol
-		if !checkLen(1) {
-			Error("serialize L7ProtocolInfo `ProtocolMerge` fail")
-			return nil
-		}
-		var needProtocolMerge byte = 0
-		if info.ProtocolMerge {
-			needProtocolMerge = 1 << 7
-			if info.IsEnd {
-				needProtocolMerge |= 1
+			var status pb.AppRespStatus
+			if info.Resp.Status == nil {
+				status = pb.AppRespStatus_RESP_UNKNOWN
+			} else {
+				switch *info.Resp.Status {
+				case RespStatusOk:
+					status = pb.AppRespStatus_RESP_OK
+				case RespStatusTimeout:
+					status = pb.AppRespStatus_RESP_TIMEOUT
+				case RespStatusServerErr:
+					status = pb.AppRespStatus_RESP_SERVER_ERROR
+				case RespStatusClientErr:
+					status = pb.AppRespStatus_RESP_CLIENT_ERROR
+				case RespStatusUnknown:
+					status = pb.AppRespStatus_RESP_UNKNOWN
+				}
 			}
-		}
-		buf[off] = needProtocolMerge
-		off += 1
+			resp := pb.AppResponse{
+				Status:    &status,
+				Result:    proto.String(info.Resp.Result),
+				Exception: proto.String(info.Resp.Exception),
+			}
 
-		// serialize trace info
-		if !checkLen(1) {
-			return nil
-		}
-		if info.Trace == nil {
-			buf[off] = 0
-			off += 1
-		} else {
-			buf[off] = 1
-			off += 1
-			if !(writeStr(info.Trace.TraceID, buf[:], &off) &&
-				writeStr(info.Trace.SpanID, buf[:], &off) &&
-				writeStr(info.Trace.ParentSpanID, buf[:], &off)) {
-				Error("serialize L7ProtocolInfo trace fail")
-				return nil
+			if info.Resp.Code != nil {
+				resp.Code = proto.Int32(*info.Resp.Code)
+			}
+			msg.Info = &pb.AppInfo_Resp{
+				Resp: &resp,
 			}
 		}
 
-		// serialize kv
-		if !checkLen(1) {
-			return nil
-		}
-		if len(info.Kv) != 0 {
-			buf[off] = 1
-			off += 1
-			if !serializeKV(info.Kv, buf[:], &off) {
-				return nil
+		msg.ProtocolStr = proto.String(info.L7ProtocolStr)
+
+		if info.Trace != nil {
+			msg.Trace = &pb.AppTrace{
+				TraceId:         proto.String(info.Trace.TraceID),
+				SpanId:          proto.String(info.Trace.SpanID),
+				ParentSpanId:    proto.String(info.Trace.ParentSpanID),
+				XRequestId:      proto.String(info.Trace.XRequestID),
+				HttpProxyClient: proto.String(info.Trace.HttpProxyClient),
 			}
-		} else {
-			buf[off] = 0
-			off += 1
 		}
 
-		// serialize biz type
-		if !checkLen(1) {
+		for _, kv := range info.Kv {
+			msg.Attributes = append(msg.Attributes, &pb.KeyVal{
+				Key: kv.Key,
+				Val: kv.Val,
+			})
+		}
+
+		msg.BizType = proto.Uint32(uint32(info.BizType))
+
+		serSize := msg.SizeVT()
+
+		if !checkLen(serSize) {
 			return nil
 		}
-		buf[off] = info.BizType
-		off += 1
+		_, err := msg.MarshalToVT(buf[start+off:])
+		if err != nil {
+			Error("serialize l7ProtocolInfo failed: %s", err)
+			return nil
+		}
+		off += serSize
 
-		binary.BigEndian.PutUint16(buf[start:start+2], uint16(off-start-2))
+		binary.BigEndian.PutUint16(buf[start:], uint16(serSize+2))
+		// magic
+		copy(buf[start+2:], "PB")
 	}
 	return buf[:off]
-}
-
-/*
-ReqType, Endpoint, Domain, Resource
-(
-
-	len: 2 bytes
-	val: $(len) bytes
-
-) x 4
-*/
-func serializeL7InfoReq(req *Request, buf []byte) int {
-	off := 0
-	if writeStr(req.ReqType, buf, &off) &&
-		writeStr(req.Endpoint, buf, &off) &&
-		writeStr(req.Domain, buf, &off) &&
-		writeStr(req.Resource, buf, &off) {
-		return off
-	}
-	return 0
-}
-
-/*
-status:    1 byte,
-has code:  1 byte, 0 or 1,
-
-if has code:
-
-	code:  4 bytes,
-
-Result, Exception
-(
-
-	len: 2 bytes
-	val: $(len) bytes
-
-) x 2
-*/
-func serializeL7InfoResp(resp *Response, buf []byte) int {
-	off := 0
-	if off+1 > len(buf) {
-		return 0
-	}
-	if resp.Status == nil {
-		status := RespStatusNotExist
-		resp.Status = &status
-	}
-	buf[off] = byte(*resp.Status)
-	off += 1
-	if resp.Code != nil {
-		buf[off] = 1
-		off += 1
-		if off+4 > len(buf) {
-			return 0
-		}
-		binary.BigEndian.PutUint32(buf[off:off+4], uint32(*resp.Code))
-		off += 4
-	} else {
-		buf[off] = 0
-		off += 1
-	}
-
-	if writeStr(resp.Result, buf, &off) &&
-		writeStr(resp.Exception, buf, &off) {
-		return off
-	}
-	return 0
 }

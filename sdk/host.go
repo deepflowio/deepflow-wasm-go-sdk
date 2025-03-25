@@ -41,9 +41,10 @@ const (
 
 const (
 	RespStatusOk        RespStatus = 0
-	RespStatusNotExist  RespStatus = 2
+	RespStatusTimeout   RespStatus = 2
 	RespStatusServerErr RespStatus = 3
 	RespStatusClientErr RespStatus = 4
+	RespStatusUnknown   RespStatus = 5
 )
 
 type L4Protocol uint16
@@ -119,6 +120,7 @@ func (p *ParseCtx) GetPayload() ([]byte, error) {
 }
 
 type Request struct {
+	Version  string
 	ReqType  string
 	Domain   string
 	Resource string
@@ -133,9 +135,11 @@ type Response struct {
 }
 
 type Trace struct {
-	TraceID      string
-	SpanID       string
-	ParentSpanID string
+	TraceID         string
+	SpanID          string
+	ParentSpanID    string
+	XRequestID      string
+	HttpProxyClient string
 }
 
 type L7ProtocolInfo struct {

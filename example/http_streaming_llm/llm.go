@@ -23,17 +23,20 @@ type StreamInfo struct {
 	// 分块传输结束时间
 	//respLastChunkedTime uint64
 	totalToken uint64
-	flag int
+	flag       int
 }
 
 /*
-	大模型http流式请求:
-		POST /xxx/generate_stream HTTP/1.1
-		Content-Type: applicatin/json
-		{"inputs": "test", "parameters": {"do_sample": false, "max_new_tokens": 80}, "stream": True}
-	判断http流式请求:
-		(1) /generate_stream
-		(2) body stream=True
+大模型http流式请求:
+
+	POST /xxx/generate_stream HTTP/1.1
+	Content-Type: applicatin/json
+	{"inputs": "test", "parameters": {"do_sample": false, "max_new_tokens": 80}, "stream": True}
+
+判断http流式请求:
+
+	(1) /generate_stream
+	(2) body stream=True
 */
 func checker(payload []byte) (protoNum uint8, protoStr string) {
 	req, err := http.ReadRequest(bufio.NewReader(bytes.NewReader(payload)))
@@ -42,7 +45,7 @@ func checker(payload []byte) (protoNum uint8, protoStr string) {
 	}
 
 	query := req.URL.Path
-	if strings.Contains(query,"/generate_stream") {
+	if strings.Contains(query, "/generate_stream") {
 		sdk.Warn(fmt.Sprintf("check: %s", query))
 		return 1, "http_stream"
 	}
@@ -50,13 +53,13 @@ func checker(payload []byte) (protoNum uint8, protoStr string) {
 }
 
 /*
-	大模型http流式响应
- */
+大模型http流式响应
+*/
 func parser(payload []byte, flowid uint64) {
 }
 
 type llmParser struct {
-	httpStream map[uint64] *StreamInfo
+	httpStream map[uint64]*StreamInfo
 }
 
 func (p *llmParser) HookIn() []sdk.HookBitmap {
@@ -75,7 +78,7 @@ func (p *llmParser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 }
 
 func (p *llmParser) OnCheckPayload(baseCtx *sdk.ParseCtx) (protoNum uint8, protoStr string) {
-	if baseCtx.EbpfType != sdk.EbpfTypeNone{
+	if baseCtx.EbpfType != sdk.EbpfTypeNone {
 		return 0, ""
 	}
 	payload, err := baseCtx.GetPayload()
@@ -109,7 +112,7 @@ func (p *llmParser) OnParsePayload(baseCtx *sdk.ParseCtx) sdk.Action {
 
 	switch baseCtx.Direction {
 	case sdk.DirectionRequest:
-		streamId = fmt.Sprintf("%s:%d->%s:%d %d",baseCtx.DstIP.String(), baseCtx.DstPort, baseCtx.SrcIP.String(), baseCtx.SrcPort, flowId)
+		streamId = fmt.Sprintf("%s:%d->%s:%d %d", baseCtx.DstIP.String(), baseCtx.DstPort, baseCtx.SrcIP.String(), baseCtx.SrcPort, flowId)
 		sdk.Warn("parse-req-start:" + streamId)
 		req, err := http.ReadRequest(bufio.NewReader(bytes.NewReader(payload)))
 		if err != nil {
@@ -117,10 +120,10 @@ func (p *llmParser) OnParsePayload(baseCtx *sdk.ParseCtx) sdk.Action {
 		}
 		p.httpStream[flowId].reqTime = baseCtx.Time
 		info := &sdk.L7ProtocolInfo{
-			Req: 	&sdk.Request{
+			Req: &sdk.Request{
 				Resource: req.URL.Path,
 			},
-			Resp: 	&sdk.Response{},
+			Resp: &sdk.Response{},
 		}
 		return sdk.ParseActionAbortWithL7Info([]*sdk.L7ProtocolInfo{info})
 	case sdk.DirectionResponse:
@@ -145,11 +148,11 @@ func (p *llmParser) OnParsePayload(baseCtx *sdk.ParseCtx) sdk.Action {
 			attr = []sdk.KeyVal{
 				{
 					Key: "ttft",
-					Val: fmt.Sprintf("%d", p.httpStream[flowId].respFirstChunkedTime - p.httpStream[flowId].reqTime),
+					Val: fmt.Sprintf("%d", p.httpStream[flowId].respFirstChunkedTime-p.httpStream[flowId].reqTime),
 				},
 				{
 					Key: "tpot",
-					Val:  fmt.Sprintf("%d",(baseCtx.Time - p.httpStream[flowId].respFirstChunkedTime) / p.httpStream[flowId].totalToken),
+					Val: fmt.Sprintf("%d", (baseCtx.Time-p.httpStream[flowId].respFirstChunkedTime)/p.httpStream[flowId].totalToken),
 				},
 				{
 					Key: "tokens",
@@ -159,15 +162,15 @@ func (p *llmParser) OnParsePayload(baseCtx *sdk.ParseCtx) sdk.Action {
 			status := sdk.RespStatusOk
 			code := int32(200)
 			info := &sdk.L7ProtocolInfo{
-				Req:    &sdk.Request{},
-				Resp:	&sdk.Response{
+				Req: &sdk.Request{},
+				Resp: &sdk.Response{
 					Status: &status,
-					Code: &code,
+					Code:   &code,
 				},
-				Kv: 	attr,
+				Kv: attr,
 			}
-			if _, exists := p.httpStream[flowId]; exists{
-				delete(p.httpStream,flowId)
+			if _, exists := p.httpStream[flowId]; exists {
+				delete(p.httpStream, flowId)
 			}
 			return sdk.ParseActionAbortWithL7Info([]*sdk.L7ProtocolInfo{info})
 		}
@@ -178,7 +181,7 @@ func (p *llmParser) OnParsePayload(baseCtx *sdk.ParseCtx) sdk.Action {
 		}
 		sdk.Warn(fmt.Sprintf("parse-resp:%d %s", baseCtx.Time, string(bs)))
 		// TODO 判断响应首包
-		if (p.httpStream[flowId].flag == 0){
+		if p.httpStream[flowId].flag == 0 {
 			p.httpStream[flowId].flag = 1
 			p.httpStream[flowId].respFirstChunkedTime = baseCtx.Time
 			p.httpStream[flowId].totalToken = uint64(len(bs))
@@ -189,8 +192,8 @@ func (p *llmParser) OnParsePayload(baseCtx *sdk.ParseCtx) sdk.Action {
 		bs, _, err = r.ReadLine()
 		if err == io.EOF {
 			sdk.Warn("parse-resp-end-03")
-			if _, exists := p.httpStream[flowId]; exists{
-				delete(p.httpStream,flowId)
+			if _, exists := p.httpStream[flowId]; exists {
+				delete(p.httpStream, flowId)
 			}
 			return sdk.ActionNext()
 		}
@@ -205,7 +208,7 @@ func (p *llmParser) OnParsePayload(baseCtx *sdk.ParseCtx) sdk.Action {
 func main() {
 	sdk.Warn("llm wasm plugin loaded")
 	llm := &llmParser{
-		httpStream: map[uint64] *StreamInfo{},
+		httpStream: map[uint64]*StreamInfo{},
 	}
 	sdk.SetParser(llm)
 }
