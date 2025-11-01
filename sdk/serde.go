@@ -313,99 +313,6 @@ func deserializeHttpRespCtx(paramBuf, httpRespBuf []byte) *HttpRespCtx {
 	return ctx
 }
 
-/*
-(
-
-	key len: 2 bytes
-	key:     $(key len) bytes
-
-	val len: 2 bytes
-	val:     $(val len) bytes
-
-) x n
-*/
-func serializeKV(attr []KeyVal, buf []byte, offset *int) bool {
-
-	off, count := *offset, 0
-
-	for _, v := range attr {
-		if writeStr(v.Key, buf, &off) && writeStr(v.Val, buf, &off) {
-			count += 1
-			continue
-		}
-		break
-	}
-	if count == 0 {
-		Error("serialize kv fail")
-		return false
-	}
-
-	if count != len(attr) {
-		Warn("kv not all serialize")
-	}
-	*offset = off
-	return true
-}
-
-/*
-(
-
-	info len: 2 bytes
-
-	req len:  4	bytes: | 1 bit: is nil? | 31bit length |
-
-	resp len:  4 bytes: | 1 bit: is nil? | 31bit length |
-
-	has request id: 1 bytes:  0 or 1
-
-	if has request id:
-
-		request	id: 4 bytes
-
-	if direction is c2s:
-
-		req
-
-	if direction is s2c:
-
-		resp
-
-	l7_protocol_str len: 2 bytes
-	l7_protocol_str:     $(l7_protocol_str len) bytes
-
-	need_protocol_merge: 1 byte, the msb indicate is need protocol merge, the lsb indicate is end, such as 1 000000 1
-
-	has trace: 1 byte
-
-	if has trace:
-
-		trace_id, span_id, parent_span_id
-		(
-
-		key len: 2 bytes
-		key:     $(key len) bytes
-
-		val len: 2 bytes
-		val:     $(val len) bytes
-
-		) x 3
-
-
-	has kv:  1 byte
-	if has kv
-		(
-			key len: 2 bytes
-			key:     $(key len) bytes
-
-			val len: 2 bytes
-			val:     $(val len) bytes
-
-		) x len(kv)
-
-	biz type: 1 byte
-
-) x len(infos)
-*/
 func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byte {
 	buf := [L7_INFO_BUF_SIZE]byte{}
 	off := 0
@@ -435,6 +342,10 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 
 		if info.RequestID != nil {
 			msg.RequestId = proto.Uint32(uint32(*info.RequestID))
+		}
+
+		if info.IsAsync != nil {
+			msg.IsAsync = proto.Bool(bool(*info.IsAsync))
 		}
 
 		switch direction {
@@ -498,6 +409,7 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 				ParentSpanId:    proto.String(info.Trace.ParentSpanID),
 				XRequestId:      proto.String(info.Trace.XRequestID),
 				HttpProxyClient: proto.String(info.Trace.HttpProxyClient),
+				TraceIds:        info.Trace.TraceIDs,
 			}
 		}
 

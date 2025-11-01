@@ -140,6 +140,7 @@ type Trace struct {
 	ParentSpanID    string
 	XRequestID      string
 	HttpProxyClient string
+	TraceIDs        []string
 }
 
 type L7ProtocolInfo struct {
@@ -154,6 +155,7 @@ type L7ProtocolInfo struct {
 	ProtocolMerge bool
 	// request/response end
 	IsEnd         bool
+	IsAsync       *bool
 	BizType       uint8
 	L7ProtocolStr string
 }
