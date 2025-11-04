@@ -157,5 +157,7 @@ type L7ProtocolInfo struct {
 	IsEnd         bool
 	IsAsync       *bool
 	BizType       uint8
+	BizCode       string
+	BizScenario   string
 	L7ProtocolStr string
 }
