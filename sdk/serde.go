@@ -348,6 +348,10 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 			msg.IsAsync = proto.Bool(bool(*info.IsAsync))
 		}
 
+		if info.IsReversed != nil {
+			msg.IsReversed = proto.Bool(bool(*info.IsReversed))
+		}
+
 		switch direction {
 		case DirectionRequest:
 			if info.Req == nil {

@@ -180,6 +180,10 @@ func (m *AppInfo) CloneVT() *AppInfo {
 		tmpVal := *rhs
 		r.IsAsync = &tmpVal
 	}
+	if rhs := m.IsReversed; rhs != nil {
+		tmpVal := *rhs
+		r.IsReversed = &tmpVal
+	}
 	if rhs := m.Attributes; rhs != nil {
 		tmpContainer := make([]*KeyVal, len(rhs))
 		for k, v := range rhs {
@@ -442,6 +446,9 @@ func (this *AppInfo) EqualVT(that *AppInfo) bool {
 		return false
 	}
 	if p, q := this.IsAsync, that.IsAsync; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
+		return false
+	}
+	if p, q := this.IsReversed, that.IsReversed; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
 		return false
 	}
 	if len(this.Attributes) != len(that.Attributes) {
@@ -929,6 +936,18 @@ func (m *AppInfo) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			i--
 			dAtA[i] = 0xfa
 		}
+	}
+	if m.IsReversed != nil {
+		i--
+		if *m.IsReversed {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xb8
 	}
 	if m.IsAsync != nil {
 		i--
@@ -1462,6 +1481,18 @@ func (m *AppInfo) MarshalToSizedBufferVTStrict(dAtA []byte) (int, error) {
 			dAtA[i] = 0xfa
 		}
 	}
+	if m.IsReversed != nil {
+		i--
+		if *m.IsReversed {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xb8
+	}
 	if m.IsAsync != nil {
 		i--
 		if *m.IsAsync {
@@ -1826,6 +1857,9 @@ func (m *AppInfo) SizeVT() (n int) {
 		n += 3
 	}
 	if m.IsAsync != nil {
+		n += 3
+	}
+	if m.IsReversed != nil {
 		n += 3
 	}
 	if len(m.Attributes) > 0 {
@@ -2940,6 +2974,27 @@ func (m *AppInfo) UnmarshalVT(dAtA []byte) error {
 			}
 			b := bool(v != 0)
 			m.IsAsync = &b
+		case 23:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IsReversed", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			b := bool(v != 0)
+			m.IsReversed = &b
 		case 31:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Attributes", wireType)
@@ -4430,6 +4485,27 @@ func (m *AppInfo) UnmarshalVTUnsafe(dAtA []byte) error {
 			}
 			b := bool(v != 0)
 			m.IsAsync = &b
+		case 23:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IsReversed", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			b := bool(v != 0)
+			m.IsReversed = &b
 		case 31:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Attributes", wireType)
