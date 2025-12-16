@@ -154,8 +154,10 @@ type L7ProtocolInfo struct {
 	// cache the log in session merge and merge multi times until request end and response end
 	ProtocolMerge bool
 	// request/response end
-	IsEnd         bool
-	IsAsync       *bool
+	IsEnd   bool
+	IsAsync *bool
+	// L2 + L3 + L4 + TapSide
+	IsReversed    *bool
 	BizType       uint8
 	BizCode       string
 	BizScenario   string
