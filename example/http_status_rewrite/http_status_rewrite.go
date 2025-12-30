@@ -54,8 +54,8 @@ func (p parser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 	return onResp(r)
 }
 
-func (p parser) OnCheckPayload(ctx *sdk.ParseCtx) (protoNum uint8, protoStr string) {
-	return 0, ""
+func (p parser) OnCheckPayload(ctx *sdk.ParseCtx) (protoNum uint8, protoStr string, direction uint8) {
+	return 0, "", 0
 }
 
 func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {

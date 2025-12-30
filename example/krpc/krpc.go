@@ -133,16 +133,16 @@ func (p parser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 	return sdk.ActionNext()
 }
 
-func (p parser) OnCheckPayload(ctx *sdk.ParseCtx) (protoNum uint8, protoStr string) {
+func (p parser) OnCheckPayload(ctx *sdk.ParseCtx) (protoNum uint8, protoStr string, direction uint8) {
 	payload, err := ctx.GetPayload()
 	if err != nil || ctx.L4 != sdk.TCP {
-		return 0, ""
+		return 0, "", 0
 	}
 	info := KrpcInfo{}
 	if err := info.parse(payload, true); err != nil || info.MsgType != sdk.DirectionRequest {
-		return 0, ""
+		return 0, "", 0
 	}
-	return KRPC_PROTOCOL, "KRPC"
+	return KRPC_PROTOCOL, "KRPC", 0
 }
 
 func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {

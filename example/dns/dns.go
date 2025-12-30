@@ -46,24 +46,24 @@ func (p dnsParser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 
 // check whether is request, return 0 indicate check fail, other value indicate is the dns request.
 // agent will use it to determind the direction, must return 0 if is response
-func (p dnsParser) OnCheckPayload(ctx *sdk.ParseCtx) (uint8, string) {
+func (p dnsParser) OnCheckPayload(ctx *sdk.ParseCtx) (uint8, string, uint8) {
 	if ctx.L4 != sdk.UDP || ctx.DstPort != 53 {
-		return 0, ""
+		return 0, "", 0
 	}
 
 	payload, err := ctx.GetPayload()
 	if err != nil {
 		sdk.Error("get payload fail: %v", err)
-		return 0, ""
+		return 0, "", 0
 	}
 	var dns dnsmessage.Message
 	if err := dns.Unpack(payload); err != nil {
-		return 0, ""
+		return 0, "", 0
 	}
 	if dns.Response {
-		return 0, ""
+		return 0, "", 0
 	}
-	return WASM_DNS_PROTOCOL, "dns"
+	return WASM_DNS_PROTOCOL, "dns", 0
 }
 
 func (p dnsParser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {
