@@ -34,18 +34,18 @@ func (p parser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 	return sdk.ActionNext()
 }
 
-func (p parser) OnCheckPayload(ctx *sdk.ParseCtx) (protoNum uint8, protoStr string) {
+func (p parser) OnCheckPayload(ctx *sdk.ParseCtx) (protoNum uint8, protoStr string, direction uint8) {
 	if ctx.EbpfType != sdk.EbpfTypeGoHttp2Uprobe && ctx.EbpfType != sdk.EbpfTypeGoHttp2UprobeDATA {
-		return 0, ""
+		return 0, "", 0
 	}
 	payload, err := ctx.GetPayload()
 	if err != nil {
-		return 0, ""
+		return 0, "", 0
 	}
 	if _, _, _, err := parseHeader(payload); err != nil {
-		return 0, ""
+		return 0, "", 0
 	}
-	return GO_HTTP2_EBPF_PROTOCOL, "ebpf_go_http2"
+	return GO_HTTP2_EBPF_PROTOCOL, "ebpf_go_http2", 0
 }
 
 func (p parser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {

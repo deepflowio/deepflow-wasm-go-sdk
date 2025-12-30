@@ -56,6 +56,9 @@ var (
 	PROTOCOL_DUBBO uint16 = 40
 	PROTOCOL_NATS  uint16 = 104
 	PROTOCOL_ZMTP  uint16 = 106
+
+	REQUEST  uint8 = 1
+	RESPONSE uint8 = 2
 )
 
 var CUSTOM_MESSAGE_HOOK_ALL uint64 = 0xff << 48
@@ -107,7 +110,7 @@ type Parser interface {
 	OnCustomMessage(*CustomMessageCtx) Action
 	OnNatsMessage(pb.NatsMessage) Action
 	// protoNum return 0 indicate fail
-	OnCheckPayload(*ParseCtx) (protoNum uint8, protoStr string)
+	OnCheckPayload(*ParseCtx) (protoNum uint8, protoStr string, direction uint8)
 	OnParsePayload(*ParseCtx) Action
 	HookIn() []HookBitmap
 	CustomMessageHookIn() uint64
@@ -146,8 +149,8 @@ func (p DefaultParser) OnNatsMessage(msg pb.NatsMessage) Action {
 	return ActionNext()
 }
 
-func (p DefaultParser) OnCheckPayload(ctx *ParseCtx) (uint8, string) {
-	return 0, ""
+func (p DefaultParser) OnCheckPayload(ctx *ParseCtx) (uint8, string, uint8) {
+	return 0, "", 0
 }
 
 func (p DefaultParser) OnParsePayload(ctx *ParseCtx) Action {

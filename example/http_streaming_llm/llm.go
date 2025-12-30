@@ -38,18 +38,18 @@ type StreamInfo struct {
 	(1) /generate_stream
 	(2) body stream=True
 */
-func checker(payload []byte) (protoNum uint8, protoStr string) {
+func checker(payload []byte) (protoNum uint8, protoStr string, direction uint8) {
 	req, err := http.ReadRequest(bufio.NewReader(bytes.NewReader(payload)))
 	if err != nil {
-		return 0, ""
+		return 0, "", 0
 	}
 
 	query := req.URL.Path
 	if strings.Contains(query, "/generate_stream") {
 		sdk.Warn(fmt.Sprintf("check: %s", query))
-		return 1, "http_stream"
+		return 1, "http_stream", 0
 	}
-	return 0, ""
+	return 0, "", 0
 }
 
 /*
@@ -79,19 +79,19 @@ func (p *llmParser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 
 func (p *llmParser) OnCheckPayload(baseCtx *sdk.ParseCtx) (protoNum uint8, protoStr string) {
 	if baseCtx.EbpfType != sdk.EbpfTypeNone {
-		return 0, ""
+		return 0, "", 0
 	}
 	payload, err := baseCtx.GetPayload()
 	if err != nil {
 		//sdk.Error("get payload fail: %v", err)
-		return 0, ""
+		return 0, "", 0
 	}
 
 	// TODO 判断大模型流式请求
 	if baseCtx.Direction == sdk.DirectionRequest {
 		return checker(payload)
 	}
-	return 0, ""
+	return 0, "", 0
 }
 
 func (p *llmParser) OnParsePayload(baseCtx *sdk.ParseCtx) sdk.Action {

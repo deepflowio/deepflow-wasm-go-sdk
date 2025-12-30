@@ -159,8 +159,8 @@ func (p httpHook) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 
 }
 
-func (p httpHook) OnCheckPayload(baseCtx *sdk.ParseCtx) (uint8, string) {
-	return 0, ""
+func (p httpHook) OnCheckPayload(baseCtx *sdk.ParseCtx) (uint8, string, uint8) {
+	return 0, "", 0
 }
 
 func (p httpHook) OnParsePayload(baseCtx *sdk.ParseCtx) sdk.Action {

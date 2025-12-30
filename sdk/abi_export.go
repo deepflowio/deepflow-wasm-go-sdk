@@ -151,7 +151,7 @@ func onCustomMessage() bool {
 }
 
 //export check_payload
-func checkPayload() uint8 {
+func checkPayload() int32 {
 	if vmParser == nil {
 		return 0
 	}
@@ -164,7 +164,7 @@ func checkPayload() uint8 {
 	if parseCtx == nil {
 		return 0
 	}
-	protoNum, protoStr := vmParser.OnCheckPayload(parseCtx)
+	protoNum, protoStr, direction := vmParser.OnCheckPayload(parseCtx)
 	if len(protoStr) > 16 {
 		protoStr = protoStr[:16]
 	}
@@ -177,7 +177,7 @@ func checkPayload() uint8 {
 		return 0
 	}
 
-	return protoNum
+	return int32(direction)<<8 | protoNum
 }
 
 //export parse_payload
