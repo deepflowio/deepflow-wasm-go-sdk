@@ -177,7 +177,7 @@ func checkPayload() int32 {
 		return 0
 	}
 
-	return int32(direction)<<8 | protoNum
+	return int32(direction)<<8 | int32(protoNum)
 }
 
 //export parse_payload
