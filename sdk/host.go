@@ -132,6 +132,8 @@ type Response struct {
 	Code      *int32
 	Result    string
 	Exception string
+	ReqType   string
+	Endpoint  string
 }
 
 type Trace struct {
