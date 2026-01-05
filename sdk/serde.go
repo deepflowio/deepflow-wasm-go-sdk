@@ -394,6 +394,8 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 				Status:    &status,
 				Result:    proto.String(info.Resp.Result),
 				Exception: proto.String(info.Resp.Exception),
+				Type:      proto.String(info.Resp.ReqType),
+				Endpoint:  proto.String(info.Resp.Endpoint),
 			}
 
 			if info.Resp.Code != nil {
