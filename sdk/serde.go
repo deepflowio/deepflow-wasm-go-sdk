@@ -352,12 +352,8 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 			msg.IsReversed = proto.Bool(bool(*info.IsReversed))
 		}
 
-		switch direction {
-		case DirectionRequest:
-			if info.Req == nil {
-				Error("c2s data but request is nil")
-				return nil
-			}
+		if info.Req != nil &&
+			(info.Resp == nil || direction == DirectionRequest) {
 			msg.Info = &pb.AppInfo_Req{
 				Req: &pb.AppRequest{
 					Version:  proto.String(info.Req.Version),
@@ -367,12 +363,8 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 					Resource: proto.String(info.Req.Resource),
 				},
 			}
-		case DirectionResponse:
-			if info.Resp == nil {
-				Error("s2c data but resp is nil")
-				return nil
-			}
-
+		} else if info.Resp != nil &&
+			(info.Req == nil || direction == DirectionResponse) {
 			var status pb.AppRespStatus
 			if info.Resp.Status == nil {
 				status = pb.AppRespStatus_RESP_UNKNOWN
@@ -435,7 +427,7 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 		if !checkLen(serSize) {
 			return nil
 		}
-		_, err := msg.MarshalToVT(buf[start+off:])
+		_, err := msg.MarshalToVT(buf[off:])
 		if err != nil {
 			Error("serialize l7ProtocolInfo failed: %s", err)
 			return nil
