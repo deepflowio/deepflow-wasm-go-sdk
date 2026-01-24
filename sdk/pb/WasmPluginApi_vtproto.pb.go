@@ -211,6 +211,10 @@ func (m *AppInfo) CloneVT() *AppInfo {
 		tmpVal := *rhs
 		r.BizScenario = &tmpVal
 	}
+	if rhs := m.BizResponseCode; rhs != nil {
+		tmpVal := *rhs
+		r.BizResponseCode = &tmpVal
+	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -489,6 +493,9 @@ func (this *AppInfo) EqualVT(that *AppInfo) bool {
 		return false
 	}
 	if p, q := this.BizScenario, that.BizScenario; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
+		return false
+	}
+	if p, q := this.BizResponseCode, that.BizResponseCode; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -925,6 +932,15 @@ func (m *AppInfo) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			return 0, err
 		}
 		i -= size
+	}
+	if m.BizResponseCode != nil {
+		i -= len(*m.BizResponseCode)
+		copy(dAtA[i:], *m.BizResponseCode)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(*m.BizResponseCode)))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x9a
 	}
 	if m.BizScenario != nil {
 		i -= len(*m.BizScenario)
@@ -1484,6 +1500,15 @@ func (m *AppInfo) MarshalToSizedBufferVTStrict(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.BizResponseCode != nil {
+		i -= len(*m.BizResponseCode)
+		copy(dAtA[i:], *m.BizResponseCode)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(*m.BizResponseCode)))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x9a
+	}
 	if m.BizScenario != nil {
 		i -= len(*m.BizScenario)
 		copy(dAtA[i:], *m.BizScenario)
@@ -1927,6 +1952,10 @@ func (m *AppInfo) SizeVT() (n int) {
 	}
 	if m.BizScenario != nil {
 		l = len(*m.BizScenario)
+		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.BizResponseCode != nil {
+		l = len(*m.BizResponseCode)
 		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	n += len(m.unknownFields)
@@ -3230,6 +3259,39 @@ func (m *AppInfo) UnmarshalVT(dAtA []byte) error {
 			}
 			s := string(dAtA[iNdEx:postIndex])
 			m.BizScenario = &s
+			iNdEx = postIndex
+		case 35:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BizResponseCode", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			s := string(dAtA[iNdEx:postIndex])
+			m.BizResponseCode = &s
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -4823,6 +4885,43 @@ func (m *AppInfo) UnmarshalVTUnsafe(dAtA []byte) error {
 			}
 			s := stringValue
 			m.BizScenario = &s
+			iNdEx = postIndex
+		case 35:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BizResponseCode", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			var stringValue string
+			if intStringLen > 0 {
+				stringValue = unsafe.String(&dAtA[iNdEx], intStringLen)
+			}
+			s := stringValue
+			m.BizResponseCode = &s
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

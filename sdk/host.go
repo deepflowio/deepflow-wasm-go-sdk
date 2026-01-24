@@ -159,9 +159,10 @@ type L7ProtocolInfo struct {
 	IsEnd   bool
 	IsAsync *bool
 	// L2 + L3 + L4 + TapSide
-	IsReversed    *bool
-	BizType       uint8
-	BizCode       string
-	BizScenario   string
-	L7ProtocolStr string
+	IsReversed      *bool
+	BizType         uint8
+	BizCode         string
+	BizScenario     string
+	BizResponseCode string
+	L7ProtocolStr   string
 }
