@@ -421,7 +421,7 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 		msg.BizType = proto.Uint32(uint32(info.BizType))
 		msg.BizCode = proto.String(info.BizCode)
 		msg.BizScenario = proto.String(info.BizScenario)
-		msg.BizScenario = proto.String(info.BizResponseCode)
+		msg.BizResponseCode = proto.String(info.BizResponseCode)
 
 		serSize := msg.SizeVT()
 
