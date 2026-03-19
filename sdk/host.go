@@ -61,9 +61,10 @@ type HttpReqCtx struct {
 }
 
 type HttpRespCtx struct {
-	BaseCtx ParseCtx
-	Code    uint16
-	Status  RespStatus
+	BaseCtx  ParseCtx
+	Code     uint16
+	Status   RespStatus
+	Endpoint string
 }
 
 const (
