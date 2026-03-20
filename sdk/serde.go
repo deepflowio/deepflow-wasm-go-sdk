@@ -28,7 +28,7 @@ import (
 const PAGE_SIZE = 65536
 const PARSE_PARAM_BUF_SIZE = 1024
 const HTTP_REQ_BUF_SIZE = PAGE_SIZE
-const HTTP_RESP_BUF_SIZE = 3
+const HTTP_RESP_BUF_SIZE = PAGE_SIZE
 const CUSTOM_MESSAGE_BUF_SIZE = PAGE_SIZE
 const KV_SERDE_BUF_SIZE = PAGE_SIZE
 const L7_INFO_BUF_SIZE = PAGE_SIZE
@@ -284,8 +284,11 @@ func deserializeHttpReqCtx(paramBuf, httpReqBuf []byte) *HttpReqCtx {
 }
 
 /*
-code:     2 bytes
-status:   1 byte
+code:         2 bytes
+status:       1 byte
+// optional (new agent only; old agent sends exactly 3 bytes):
+endpoint len: 2 bytes
+endpoint:     $(endpoint len) bytes
 */
 func deserializeHttpRespCtx(paramBuf, httpRespBuf []byte) *HttpRespCtx {
 	respBufLen := len(httpRespBuf)
@@ -310,6 +313,17 @@ func deserializeHttpRespCtx(paramBuf, httpRespBuf []byte) *HttpRespCtx {
 		Status:  status,
 		Code:    binary.BigEndian.Uint16(httpRespBuf[:2]),
 	}
+
+	// endpoint is present only when new agent sends it (buf len > 3)
+	off := 3
+	if off+2 <= respBufLen {
+		endpointLen := int(binary.BigEndian.Uint16(httpRespBuf[off : off+2]))
+		off += 2
+		if endpointLen > 0 && off+endpointLen <= respBufLen {
+			ctx.Endpoint = string(httpRespBuf[off : off+endpointLen])
+		}
+	}
+
 	return ctx
 }
 
