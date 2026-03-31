@@ -143,6 +143,7 @@ func deserializeParseCtx(b []byte) *ParseCtx {
 		EbpfTypeTlsUprobe,
 		EbpfTypeGoHttp2UprobeDATA,
 		EbpfTypeGoHttp2Uprobe,
+		EbpfTypeUnixSocket,
 		EbpfTypeNone:
 		ctx.EbpfType = ebpfType
 	default:
