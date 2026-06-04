@@ -53,9 +53,10 @@ var (
 )
 
 var (
-	PROTOCOL_DUBBO uint16 = 40
-	PROTOCOL_NATS  uint16 = 104
-	PROTOCOL_ZMTP  uint16 = 106
+	PROTOCOL_DUBBO   uint16 = 40
+	PROTOCOL_SOFARPC uint16 = 43
+	PROTOCOL_NATS    uint16 = 104
+	PROTOCOL_ZMTP    uint16 = 106
 
 	REQUEST  uint8 = 1
 	RESPONSE uint8 = 2

@@ -380,10 +380,15 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 			}
 		} else if info.Resp != nil &&
 			(info.Req == nil || direction == DirectionResponse) {
-			var status pb.AppRespStatus
-			if info.Resp.Status == nil {
-				status = pb.AppRespStatus_RESP_UNKNOWN
-			} else {
+			resp := pb.AppResponse{
+				Result:    proto.String(info.Resp.Result),
+				Exception: proto.String(info.Resp.Exception),
+				Type:      proto.String(info.Resp.ReqType),
+				Endpoint:  proto.String(info.Resp.Endpoint),
+			}
+
+			if info.Resp.Status != nil {
+				var status pb.AppRespStatus
 				switch *info.Resp.Status {
 				case RespStatusOk:
 					status = pb.AppRespStatus_RESP_OK
@@ -396,13 +401,7 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 				case RespStatusUnknown:
 					status = pb.AppRespStatus_RESP_UNKNOWN
 				}
-			}
-			resp := pb.AppResponse{
-				Status:    &status,
-				Result:    proto.String(info.Resp.Result),
-				Exception: proto.String(info.Resp.Exception),
-				Type:      proto.String(info.Resp.ReqType),
-				Endpoint:  proto.String(info.Resp.Endpoint),
+				resp.Status = &status
 			}
 
 			if info.Resp.Code != nil {

@@ -82,10 +82,14 @@ type CustomMessageCtx struct {
 }
 
 func (ctx *CustomMessageCtx) CheckParseProtocol(protocol uint16, isRequest bool) bool {
-	if isRequest {
-		return ctx.HookPoint == ProtocolParse && ctx.TypeCode == uint32(protocol)
+	if ctx.HookPoint != ProtocolParse {
+		return false
 	}
-	return false
+	typeCode := uint32(protocol)
+	if !isRequest {
+		typeCode |= 1 << 16
+	}
+	return ctx.TypeCode == typeCode
 }
 
 type ParseCtx struct {
