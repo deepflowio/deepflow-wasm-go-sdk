@@ -35,6 +35,9 @@ message AppTrace {
     optional string x_request_id = 4;
     optional string http_proxy_client = 5;
     repeated string trace_ids = 6;
+    // Non-empty explicit IDs override x_request_id, regardless of packet direction.
+    optional string x_request_id_0 = 7;
+    optional string x_request_id_1 = 8;
 }
 
 message KeyVal {

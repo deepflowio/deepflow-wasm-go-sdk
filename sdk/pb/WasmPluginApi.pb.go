@@ -244,8 +244,11 @@ type AppTrace struct {
 	XRequestId      *string                `protobuf:"bytes,4,opt,name=x_request_id,json=xRequestId,proto3,oneof" json:"x_request_id,omitempty"`
 	HttpProxyClient *string                `protobuf:"bytes,5,opt,name=http_proxy_client,json=httpProxyClient,proto3,oneof" json:"http_proxy_client,omitempty"`
 	TraceIds        []string               `protobuf:"bytes,6,rep,name=trace_ids,json=traceIds,proto3" json:"trace_ids,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Non-empty explicit IDs override x_request_id, regardless of packet direction.
+	XRequestId_0  *string `protobuf:"bytes,7,opt,name=x_request_id_0,json=xRequestId0,proto3,oneof" json:"x_request_id_0,omitempty"`
+	XRequestId_1  *string `protobuf:"bytes,8,opt,name=x_request_id_1,json=xRequestId1,proto3,oneof" json:"x_request_id_1,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AppTrace) Reset() {
@@ -318,6 +321,20 @@ func (x *AppTrace) GetTraceIds() []string {
 		return x.TraceIds
 	}
 	return nil
+}
+
+func (x *AppTrace) GetXRequestId_0() string {
+	if x != nil && x.XRequestId_0 != nil {
+		return *x.XRequestId_0
+	}
+	return ""
+}
+
+func (x *AppTrace) GetXRequestId_1() string {
+	if x != nil && x.XRequestId_1 != nil {
+		return *x.XRequestId_1
+	}
+	return ""
 }
 
 type KeyVal struct {
@@ -725,7 +742,7 @@ const file_WasmPluginApi_proto_rawDesc = "" +
 	"_exceptionB\t\n" +
 	"\a_resultB\a\n" +
 	"\x05_typeB\v\n" +
-	"\t_endpoint\"\xbb\x02\n" +
+	"\t_endpoint\"\xb5\x03\n" +
 	"\bAppTrace\x12\x1e\n" +
 	"\btrace_id\x18\x01 \x01(\tH\x00R\atraceId\x88\x01\x01\x12\x1c\n" +
 	"\aspan_id\x18\x02 \x01(\tH\x01R\x06spanId\x88\x01\x01\x12)\n" +
@@ -733,13 +750,17 @@ const file_WasmPluginApi_proto_rawDesc = "" +
 	"\fx_request_id\x18\x04 \x01(\tH\x03R\n" +
 	"xRequestId\x88\x01\x01\x12/\n" +
 	"\x11http_proxy_client\x18\x05 \x01(\tH\x04R\x0fhttpProxyClient\x88\x01\x01\x12\x1b\n" +
-	"\ttrace_ids\x18\x06 \x03(\tR\btraceIdsB\v\n" +
+	"\ttrace_ids\x18\x06 \x03(\tR\btraceIds\x12(\n" +
+	"\x0ex_request_id_0\x18\a \x01(\tH\x05R\vxRequestId0\x88\x01\x01\x12(\n" +
+	"\x0ex_request_id_1\x18\b \x01(\tH\x06R\vxRequestId1\x88\x01\x01B\v\n" +
 	"\t_trace_idB\n" +
 	"\n" +
 	"\b_span_idB\x11\n" +
 	"\x0f_parent_span_idB\x0f\n" +
 	"\r_x_request_idB\x14\n" +
-	"\x12_http_proxy_client\",\n" +
+	"\x12_http_proxy_clientB\x11\n" +
+	"\x0f_x_request_id_0B\x11\n" +
+	"\x0f_x_request_id_1\",\n" +
 	"\x06KeyVal\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x10\n" +
 	"\x03val\x18\x02 \x01(\tR\x03val\"\xf7\x05\n" +
