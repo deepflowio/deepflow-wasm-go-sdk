@@ -424,6 +424,12 @@ func serializeL7ProtocolInfo(infos []*L7ProtocolInfo, direction Direction) []byt
 				HttpProxyClient: proto.String(info.Trace.HttpProxyClient),
 				TraceIds:        info.Trace.TraceIDs,
 			}
+			if info.Trace.XRequestID0 != "" {
+				msg.Trace.XRequestId_0 = proto.String(info.Trace.XRequestID0)
+			}
+			if info.Trace.XRequestID1 != "" {
+				msg.Trace.XRequestId_1 = proto.String(info.Trace.XRequestID1)
+			}
 		}
 
 		for _, kv := range info.Kv {

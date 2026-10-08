@@ -139,10 +139,13 @@ type Response struct {
 }
 
 type Trace struct {
-	TraceID         string
-	SpanID          string
-	ParentSpanID    string
-	XRequestID      string
+	TraceID      string
+	SpanID       string
+	ParentSpanID string
+	XRequestID   string
+	// Non-empty explicit IDs override XRequestID, regardless of packet direction.
+	XRequestID0     string
+	XRequestID1     string
 	HttpProxyClient string
 	TraceIDs        []string
 }

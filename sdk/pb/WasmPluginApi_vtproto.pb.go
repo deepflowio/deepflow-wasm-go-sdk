@@ -126,6 +126,14 @@ func (m *AppTrace) CloneVT() *AppTrace {
 		copy(tmpContainer, rhs)
 		r.TraceIds = tmpContainer
 	}
+	if rhs := m.XRequestId_0; rhs != nil {
+		tmpVal := *rhs
+		r.XRequestId_0 = &tmpVal
+	}
+	if rhs := m.XRequestId_1; rhs != nil {
+		tmpVal := *rhs
+		r.XRequestId_1 = &tmpVal
+	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -396,6 +404,12 @@ func (this *AppTrace) EqualVT(that *AppTrace) bool {
 		if vx != vy {
 			return false
 		}
+	}
+	if p, q := this.XRequestId_0, that.XRequestId_0; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
+		return false
+	}
+	if p, q := this.XRequestId_1, that.XRequestId_1; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
+		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
@@ -799,6 +813,20 @@ func (m *AppTrace) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
+	}
+	if m.XRequestId_1 != nil {
+		i -= len(*m.XRequestId_1)
+		copy(dAtA[i:], *m.XRequestId_1)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(*m.XRequestId_1)))
+		i--
+		dAtA[i] = 0x42
+	}
+	if m.XRequestId_0 != nil {
+		i -= len(*m.XRequestId_0)
+		copy(dAtA[i:], *m.XRequestId_0)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(*m.XRequestId_0)))
+		i--
+		dAtA[i] = 0x3a
 	}
 	if len(m.TraceIds) > 0 {
 		for iNdEx := len(m.TraceIds) - 1; iNdEx >= 0; iNdEx-- {
@@ -1376,6 +1404,20 @@ func (m *AppTrace) MarshalToSizedBufferVTStrict(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.XRequestId_1 != nil {
+		i -= len(*m.XRequestId_1)
+		copy(dAtA[i:], *m.XRequestId_1)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(*m.XRequestId_1)))
+		i--
+		dAtA[i] = 0x42
+	}
+	if m.XRequestId_0 != nil {
+		i -= len(*m.XRequestId_0)
+		copy(dAtA[i:], *m.XRequestId_0)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(*m.XRequestId_0)))
+		i--
+		dAtA[i] = 0x3a
+	}
 	if len(m.TraceIds) > 0 {
 		for iNdEx := len(m.TraceIds) - 1; iNdEx >= 0; iNdEx-- {
 			i -= len(m.TraceIds[iNdEx])
@@ -1879,6 +1921,14 @@ func (m *AppTrace) SizeVT() (n int) {
 			l = len(s)
 			n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 		}
+	}
+	if m.XRequestId_0 != nil {
+		l = len(*m.XRequestId_0)
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.XRequestId_1 != nil {
+		l = len(*m.XRequestId_1)
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -2699,6 +2749,72 @@ func (m *AppTrace) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.TraceIds = append(m.TraceIds, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field XRequestId_0", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			s := string(dAtA[iNdEx:postIndex])
+			m.XRequestId_0 = &s
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field XRequestId_1", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			s := string(dAtA[iNdEx:postIndex])
+			m.XRequestId_1 = &s
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -4305,6 +4421,80 @@ func (m *AppTrace) UnmarshalVTUnsafe(dAtA []byte) error {
 				stringValue = unsafe.String(&dAtA[iNdEx], intStringLen)
 			}
 			m.TraceIds = append(m.TraceIds, stringValue)
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field XRequestId_0", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			var stringValue string
+			if intStringLen > 0 {
+				stringValue = unsafe.String(&dAtA[iNdEx], intStringLen)
+			}
+			s := stringValue
+			m.XRequestId_0 = &s
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field XRequestId_1", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			var stringValue string
+			if intStringLen > 0 {
+				stringValue = unsafe.String(&dAtA[iNdEx], intStringLen)
+			}
+			s := stringValue
+			m.XRequestId_1 = &s
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
